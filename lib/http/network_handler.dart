@@ -11,7 +11,7 @@ import 'src/network_log.dart';
 export 'package:flutter_easylogger/flutter_logger.dart';
 export 'package:fpdart/fpdart.dart' hide State;
 
-export 'clean_failure_dialogue/failure_dialogue.dart';
+export 'failure_dialogue/failure_dialogue.dart';
 export 'models/failure.dart';
 
 part 'src/network_handler_logic.dart';
