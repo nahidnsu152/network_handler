@@ -14,10 +14,13 @@ class ApiManagerImpl implements ApiManager {
   /// http client
   late Dio _dio;
   late String _baseUrl;
-
-  void setBaseUrl(String baseUrl) {
+  void setup({
+    required String baseUrl,
+  }) {
     _baseUrl = baseUrl;
   }
+
+  String getBaseUrl() => _baseUrl;
 
   /// constructor of this class
   ApiManagerImpl({BaseOptions? baseOptions}) {
@@ -69,7 +72,6 @@ class ApiManagerImpl implements ApiManager {
   }) {
     _dio.interceptors.add(
       LogInterceptor(
-      
         request: request,
         requestHeader: requestHeader,
         requestBody: requestBody,
@@ -126,7 +128,6 @@ class ApiManagerImpl implements ApiManager {
 
   @override
   Future<ApiResponse<T>> request<T>({
-  
     required String route,
     required RequestType requestType,
     Map<String, dynamic>? requestParams,
