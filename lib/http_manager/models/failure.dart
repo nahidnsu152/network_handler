@@ -59,3 +59,4 @@ class Failure extends Equatable {
   @override
   List<Object?> get props => [error];
 }
+
