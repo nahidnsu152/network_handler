@@ -13,16 +13,20 @@ import '../../../http_manager/network_handler.dart';
 class ApiManagerImpl implements ApiManager {
   /// http client
   late Dio _dio;
+  late String _baseUrl;
+
+  void setBaseUrl(String baseUrl) {
+    _baseUrl = baseUrl;
+  }
 
   /// constructor of this class
   ApiManagerImpl({BaseOptions? baseOptions}) {
-    _dio = Dio(baseOptions ?? BaseOptions());
+    _dio = Dio(baseOptions ??
+        BaseOptions(
+          baseUrl: _baseUrl,
+        ));
     _dio.options.connectTimeout = const Duration(milliseconds: 10000);
     _dio.options.receiveTimeout = const Duration(milliseconds: 30000);
-  }
-
-  void setBaseUrl(String baseUrl) {
-    _dio.options.baseUrl = baseUrl;
   }
 
   @override
@@ -55,16 +59,17 @@ class ApiManagerImpl implements ApiManager {
 
   @override
   void enableLogging({
-    bool request = false,
-    bool requestHeader = false,
-    bool requestBody = false,
-    bool responseHeader = false,
-    bool responseBody = false,
-    bool error = false,
+    bool request = true,
+    bool requestHeader = true,
+    bool requestBody = true,
+    bool responseHeader = true,
+    bool responseBody = true,
+    bool error = true,
     Function(Object object) logPrint = print,
   }) {
     _dio.interceptors.add(
       LogInterceptor(
+      
         request: request,
         requestHeader: requestHeader,
         requestBody: requestBody,
@@ -121,6 +126,7 @@ class ApiManagerImpl implements ApiManager {
 
   @override
   Future<ApiResponse<T>> request<T>({
+  
     required String route,
     required RequestType requestType,
     Map<String, dynamic>? requestParams,
