@@ -104,7 +104,7 @@ class ApiManagerImpl implements ApiManager {
   }) async {
     try {
       return await _dio.download(
-        urlPath,
+        _dio.options.baseUrl + urlPath,
         savePath,
         onReceiveProgress: onReceiveProgress,
         queryParameters: queryParameters,
@@ -145,12 +145,14 @@ class ApiManagerImpl implements ApiManager {
       options.headers = {'isauthrequired': isAuthRequired};
     }
 
+    String fullUrl = _dio.options.baseUrl + route;
+
     try {
       switch (requestType) {
         /// http get request method
         case RequestType.GET:
           final response = await _dio.get(
-            route,
+            fullUrl,
             queryParameters: requestParams,
             cancelToken: cancelToken,
             options: options,
@@ -164,7 +166,7 @@ class ApiManagerImpl implements ApiManager {
         /// http post request method
         case RequestType.POST:
           final response = await _dio.post(
-            route,
+            fullUrl,
             data: requestBody,
             queryParameters: requestParams,
             cancelToken: cancelToken,
@@ -180,7 +182,7 @@ class ApiManagerImpl implements ApiManager {
         /// http put request method
         case RequestType.PUT:
           final response = await _dio.put(
-            route,
+            fullUrl,
             data: requestBody,
             queryParameters: requestParams,
             cancelToken: cancelToken,
@@ -196,7 +198,7 @@ class ApiManagerImpl implements ApiManager {
         /// http delete request method
         case RequestType.DELETE:
           final response = await _dio.delete(
-            route,
+            fullUrl,
             data: requestBody,
             queryParameters: requestParams,
             cancelToken: cancelToken,
