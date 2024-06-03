@@ -2,14 +2,11 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
-import 'package:network_handler/http/network_handler.dart';
+import 'package:network_handler/http_manager/network_handler.dart';
 
 import '../api_manager.dart';
 import '../connectivity_manager.dart';
 import 'auth_interceptor.dart';
-
-/// Created by Taohid on 01, March, 2020
-/// Email: taohid32@gmail.com
 
 class ApiManagerImplWeb implements ApiManager {
   /// http client

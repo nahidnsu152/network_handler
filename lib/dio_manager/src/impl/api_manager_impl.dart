@@ -4,14 +4,11 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
+import 'package:network_handler/dio_manager/api_manager.dart';
+import 'package:network_handler/dio_manager/src/connectivity_manager.dart';
+import 'package:network_handler/dio_manager/src/impl/auth_interceptor.dart';
 
-import '../../../http/network_handler.dart';
-import '../api_manager.dart';
-import '../connectivity_manager.dart';
-import 'auth_interceptor.dart';
-
-/// Created by Taohid on 01, March, 2020
-/// Email: taohid32@gmail.com
+import '../../../http_manager/network_handler.dart';
 
 class ApiManagerImpl implements ApiManager {
   /// http client
@@ -24,17 +21,9 @@ class ApiManagerImpl implements ApiManager {
     _dio.options.receiveTimeout = const Duration(milliseconds: 30000);
   }
 
-  // @override
-  // void disableSSLCheck() {
-  //   if (_dio.httpClientAdapter is IOHttpClientAdapter) {
-  //     (_dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient =
-  //         (HttpClient client) {
-  //       client.badCertificateCallback =
-  //           (X509Certificate cert, String host, int port) => true;
-  //       return client;
-  //     };
-  //   }
-  // }
+  void setBaseUrl(String baseUrl) {
+    _dio.options.baseUrl = baseUrl;
+  }
 
   @override
   void disableSSLCheck() {
