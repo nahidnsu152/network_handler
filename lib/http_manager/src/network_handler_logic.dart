@@ -9,7 +9,7 @@ class NetworkHandler {
       {required String baseUrl,
       bool showLogs = false,
       bool enableDialogue = true}) {
-    log.init();
+    // log.init();
     _baseUrl = baseUrl;
     _showLogs = showLogs;
     _enableDialogue = enableDialogue;

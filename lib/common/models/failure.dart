@@ -1,11 +1,10 @@
-// ignore_for_file: no_leading_underscores_for_local_identifiers
-
 import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
-import '../network_handler.dart';
+import '../failure_dialogue/failure_dialogue.dart';
 import 'request_options.dart';
 
 class Failure extends Equatable {
@@ -27,7 +26,7 @@ class Failure extends Equatable {
       required RequestData request,
       bool enableDialogue = true,
       required dynamic error}) {
-    final Map<String, dynamic> _errorMap = {
+    final Map<String, dynamic> errorMap = {
       'url': request.uri.path,
       'method': request.method.name.toUpperCase(),
       if (request.headers != null) 'header': request.headers,
@@ -37,9 +36,9 @@ class Failure extends Equatable {
     };
     final encoder = JsonEncoder.withIndent(' ' * 2);
     // return encoder.convert(toJson());
-    final String _errorStr = encoder.convert(_errorMap);
+    final String errorStr = encoder.convert(errorMap);
     return Failure(
-        error: _errorStr,
+        error: errorStr,
         enableDialogue: enableDialogue,
         statusCode: statusCode);
   }
@@ -52,11 +51,15 @@ class Failure extends Equatable {
     if (_enableDialogue) {
       FailureDialogue.show(context, failure: this);
     } else {
-      Logger.e(this);
+      PrettyDioLogger(
+        error: true,
+        requestBody: true,
+        responseBody: true,
+        logPrint: (object) {},
+      );
     }
   }
 
   @override
   List<Object?> get props => [error];
 }
-
