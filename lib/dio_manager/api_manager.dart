@@ -6,7 +6,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 import '../../common/models/failure.dart';
-import '../../common/models/request_options.dart';
+// import '../../common/models/request_options.dart';
 
 export 'package:fpdart/fpdart.dart' hide State;
 

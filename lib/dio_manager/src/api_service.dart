@@ -100,6 +100,35 @@
 // }
 part of '../api_manager.dart';
 
+class RequestData<T> {
+  final RequestMethod method;
+  final Uri uri;
+  final bool showLogs;
+  final T Function(dynamic data)? fromData;
+  final Map<String, String>? headers;
+  final dynamic body;
+  final Either<Failure, T> Function(
+      int statusCode, Map<String, dynamic> responseBody)? failureHandler;
+
+  RequestData({
+    required this.method,
+    required this.uri,
+    this.showLogs = false,
+    this.fromData,
+    this.headers,
+    this.body,
+    this.failureHandler,
+  });
+}
+
+enum RequestMethod {
+  get,
+  post,
+  put,
+  patch,
+  delete,
+}
+
 class ApiService {
   late String _token = '';
   late String _baseUrl;
@@ -167,7 +196,7 @@ class ApiService {
         case RequestMethod.post:
           response = await dio.post(
             request.uri.toString(),
-            data: request.jsonEncodedBody,
+            data: request,
             queryParameters: queryParameters,
             options: options,
           );
@@ -175,7 +204,7 @@ class ApiService {
         case RequestMethod.put:
           response = await dio.put(
             request.uri.toString(),
-            data: request.jsonEncodedBody,
+            data: request,
             queryParameters: queryParameters,
             options: options,
           );
@@ -183,7 +212,7 @@ class ApiService {
         case RequestMethod.patch:
           response = await dio.patch(
             request.uri.toString(),
-            data: request.jsonEncodedBody,
+            data: request,
             queryParameters: queryParameters,
             options: options,
           );
@@ -191,7 +220,7 @@ class ApiService {
         case RequestMethod.delete:
           response = await dio.delete(
             request.uri.toString(),
-            data: request.jsonEncodedBody,
+            data: request,
             queryParameters: queryParameters,
             options: options,
           );
@@ -199,7 +228,7 @@ class ApiService {
       }
 
       if (response.statusCode == 200) {
-        return Right(request.fromData(response.data));
+        return Right(response.data);
       } else {
         return _handleFailure(
           response.statusCode ?? -1,
@@ -364,15 +393,13 @@ class ApiService {
       if (response.statusCode == 200) {
         return Right(response.data);
       } else {
-        return Left(Failure.withData(
-          statusCode: response.statusCode ?? -1,
-          request: RequestData(
-            method: RequestMethod.get,
-            uri: Uri.parse(urlPath),
-            fromData: (data) {},
+        return const Left(
+          Failure(
+            error: "Unknwon Error",
+            statusCode: -1,
+            enableDialogue: false,
           ),
-          error: response.data,
-        ));
+        );
       }
     } catch (error) {
       return _handleError(
@@ -426,14 +453,11 @@ class ApiService {
       if (response.statusCode == 200) {
         return Right(fromData(response.data));
       } else {
-        return Left(
-          Failure.withData(
-            statusCode: response.statusCode ?? -1,
-            request: RequestData(
-                method: RequestMethod.post,
-                uri: Uri.parse(endPoint),
-                fromData: (data) {}),
-            error: response.data,
+        return const Left(
+          Failure(
+            error: "Unknwon Error",
+            statusCode: -1,
+            enableDialogue: false,
           ),
         );
       }
@@ -445,13 +469,10 @@ class ApiService {
         responseBody: true,
       );
       return Left(
-        Failure.withData(
+        Failure(
+          error: error.toString(),
           statusCode: -1,
-          request: RequestData(
-              method: RequestMethod.post,
-              uri: Uri.parse(endPoint),
-              fromData: (data) {}),
-          error: error,
+          enableDialogue: false,
         ),
       );
     }
@@ -475,14 +496,13 @@ class ApiService {
       if (response.statusCode == 200) {
         return Right(response.data.stream);
       } else {
-        return Left(Failure.withData(
-          statusCode: response.statusCode ?? -1,
-          request: RequestData(
-              method: RequestMethod.get,
-              uri: Uri.parse(endPoint),
-              fromData: (data) {}),
-          error: response.data,
-        ));
+        return const Left(
+          Failure(
+            error: "Unknwon Error",
+            statusCode: -1,
+            enableDialogue: false,
+          ),
+        );
       }
     } catch (error) {
       PrettyDioLogger(
@@ -492,14 +512,10 @@ class ApiService {
         responseBody: true,
       );
       return Left(
-        Failure.withData(
+        Failure(
+          error: error.toString(),
           statusCode: -1,
-          request: RequestData(
-            method: RequestMethod.get,
-            uri: Uri.parse(endPoint),
-            fromData: (data) {},
-          ),
-          error: error,
+          enableDialogue: false,
         ),
       );
     }
@@ -507,9 +523,8 @@ class ApiService {
 
   Either<Failure, T> _handleFailure<T>(
       int statusCode, RequestData<T> request, dynamic error) {
-    final failure = Failure.withData(
+    final failure = Failure(
       statusCode: statusCode,
-      request: request,
       error: error,
     );
     return Left(failure);
