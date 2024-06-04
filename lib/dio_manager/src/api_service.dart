@@ -147,6 +147,7 @@ class ApiService {
   }
 
   Future<Either<Failure, T>> fetch<T>({
+    required String endPoint,
     required RequestData<T> request,
     Map<String, dynamic>? queryParameters,
   }) async {
@@ -229,7 +230,11 @@ class ApiService {
       headers: header,
       failureHandler: failureHandler,
     );
-    return fetch(request: request, queryParameters: queryParameters);
+    return fetch(
+      endPoint: endPoint,
+      request: request,
+      queryParameters: queryParameters,
+    );
   }
 
   Future<Either<Failure, T>> post<T>({
@@ -252,7 +257,92 @@ class ApiService {
       headers: header,
       failureHandler: failureHandler,
     );
-    return fetch(request: request, queryParameters: queryParameters);
+    return fetch(
+      endPoint: endPoint,
+      request: request,
+      queryParameters: queryParameters,
+    );
+  }
+
+  Future<Either<Failure, T>> put<T>({
+    required T Function(dynamic data) fromData,
+    required String endPoint,
+    dynamic data,
+    bool? showLogs,
+    Either<Failure, T> Function(
+            int statusCode, Map<String, dynamic> responseBody)?
+        failureHandler,
+    Map<String, String>? header,
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    final request = RequestData<T>(
+      method: RequestMethod.put,
+      uri: Uri.parse(endPoint),
+      body: data,
+      showLogs: showLogs ?? false,
+      fromData: fromData,
+      headers: header,
+      failureHandler: failureHandler,
+    );
+    return fetch(
+      endPoint: endPoint,
+      request: request,
+      queryParameters: queryParameters,
+    );
+  }
+
+  Future<Either<Failure, T>> patch<T>({
+    required T Function(dynamic data) fromData,
+    required String endPoint,
+    dynamic data,
+    bool? showLogs,
+    Either<Failure, T> Function(
+            int statusCode, Map<String, dynamic> responseBody)?
+        failureHandler,
+    Map<String, String>? header,
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    final request = RequestData<T>(
+      method: RequestMethod.patch,
+      uri: Uri.parse(endPoint),
+      body: data,
+      showLogs: showLogs ?? false,
+      fromData: fromData,
+      headers: header,
+      failureHandler: failureHandler,
+    );
+    return fetch(
+      endPoint: endPoint,
+      request: request,
+      queryParameters: queryParameters,
+    );
+  }
+
+  Future<Either<Failure, T>> delete<T>({
+    required T Function(dynamic data) fromData,
+    required String endPoint,
+    dynamic data,
+    bool? showLogs,
+    Either<Failure, T> Function(
+            int statusCode, Map<String, dynamic> responseBody)?
+        failureHandler,
+    Map<String, String>? header,
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    final request = RequestData<T>(
+      method: RequestMethod.delete,
+      uri: Uri.parse(endPoint),
+      body: data,
+      showLogs: showLogs ?? false,
+      fromData: fromData,
+      headers: header,
+      failureHandler: failureHandler,
+    );
+    return fetch(
+      endPoint: endPoint,
+      request: request,
+      queryParameters: queryParameters,
+    );
   }
 
   Future<Either<Failure, T>> download<T>({
