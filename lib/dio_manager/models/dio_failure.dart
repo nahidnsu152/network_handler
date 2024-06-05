@@ -1,27 +1,20 @@
-import 'dart:convert';
+part of '../dio_manager.dart';
 
-import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
-import 'package:pretty_dio_logger/pretty_dio_logger.dart';
-
-import '../failure_dialogue/failure_dialogue.dart';
-import 'request_options.dart';
-
-class Failure extends Equatable {
+class DioFailure extends Equatable {
   final String error;
   final bool _enableDialogue;
   final int statusCode;
 
-  const Failure(
+  const DioFailure(
       {required this.error, bool enableDialogue = true, this.statusCode = -1})
       : _enableDialogue = enableDialogue;
 
-  Failure copyWith({String? tag, String? error, int? statusCode}) {
-    return Failure(
+  DioFailure copyWith({String? tag, String? error, int? statusCode}) {
+    return DioFailure(
         error: error ?? this.error, statusCode: statusCode ?? this.statusCode);
   }
 
-  factory Failure.withData(
+  factory DioFailure.withData(
       {required int statusCode,
       required RequestData request,
       bool enableDialogue = true,
@@ -37,19 +30,18 @@ class Failure extends Equatable {
     final encoder = JsonEncoder.withIndent(' ' * 2);
     // return encoder.convert(toJson());
     final String errorStr = encoder.convert(errorMap);
-    return Failure(
+    return DioFailure(
         error: errorStr,
         enableDialogue: enableDialogue,
         statusCode: statusCode);
   }
-  factory Failure.none() => const Failure(error: '');
+  factory DioFailure.none() => const DioFailure(error: '');
 
   @override
   String toString() => 'CleanFailure(error: $error)';
 
   showDialogue(BuildContext context) {
     if (_enableDialogue) {
-      FailureDialogue.show(context, failure: this);
     } else {
       PrettyDioLogger(
         error: true,

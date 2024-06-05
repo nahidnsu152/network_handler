@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:equatable/equatable.dart';
 import 'package:fpdart/fpdart.dart';
 
-import 'failure.dart';
+import 'http_failure.dart';
 
 enum RequestMethod { get, post, put, patch, delete }
 
@@ -14,7 +14,7 @@ class RequestData<T> extends Equatable {
   final bool showLogs;
   final T Function(dynamic data) fromData;
   final Map<String, String>? headers;
-  final Either<Failure, T> Function(
+  final Either<HttpFailure, T> Function(
       int statusCode, Map<String, dynamic> responseBody)? failureHandler;
   const RequestData({
     required this.method,

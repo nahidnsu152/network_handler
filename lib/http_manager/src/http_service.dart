@@ -1,6 +1,6 @@
 part of '../network_handler.dart';
 
-class NetworkHandler {
+class HttpService {
   final NetworkLog log = NetworkLog();
   late String _baseUrl;
   bool _showLogs = false;
@@ -9,7 +9,7 @@ class NetworkHandler {
       {required String baseUrl,
       bool showLogs = false,
       bool enableDialogue = true}) {
-    // log.init();
+    log.init();
     _baseUrl = baseUrl;
     _showLogs = showLogs;
     _enableDialogue = enableDialogue;
@@ -26,15 +26,15 @@ class NetworkHandler {
       _header = {..._header, ...header};
 
   String getBaseUrl() => _baseUrl;
-  NetworkHandler._();
+  HttpService._();
 
-  static final NetworkHandler instance = NetworkHandler._();
+  static final HttpService instance = HttpService._();
 
-  Future<Either<Failure, T>> get<T>(
+  Future<Either<HttpFailure, T>> get<T>(
       {required T Function(dynamic data) fromData,
       required String endPoint,
       bool? showLogs,
-      Either<Failure, T> Function(
+      Either<HttpFailure, T> Function(
               int statusCode, Map<String, dynamic> responseBody)?
           failureHandler,
       Map<String, String>? header}) async {
@@ -53,12 +53,12 @@ class NetworkHandler {
     return fetch<T>(request: request);
   }
 
-  Future<Either<Failure, T>> post<T>(
+  Future<Either<HttpFailure, T>> post<T>(
       {required T Function(dynamic data) fromData,
       required Map<String, dynamic>? body,
       bool? showLogs,
       required String endPoint,
-      Either<Failure, T> Function(
+      Either<HttpFailure, T> Function(
               int statusCode, Map<String, dynamic> responseBody)?
           failureHandler,
       Map<String, String>? header}) async {
@@ -81,12 +81,12 @@ class NetworkHandler {
     return fetch<T>(request: request);
   }
 
-  Future<Either<Failure, T>> put<T>(
+  Future<Either<HttpFailure, T>> put<T>(
       {required T Function(dynamic data) fromData,
       required Map<String, dynamic>? body,
       required String endPoint,
       bool? showLogs,
-      Either<Failure, T> Function(
+      Either<HttpFailure, T> Function(
               int statusCode, Map<String, dynamic> responseBody)?
           failureHandler,
       Map<String, String>? header}) async {
@@ -109,12 +109,12 @@ class NetworkHandler {
     return fetch<T>(request: request);
   }
 
-  Future<Either<Failure, T>> patch<T>(
+  Future<Either<HttpFailure, T>> patch<T>(
       {required T Function(dynamic data) fromData,
       required Map<String, dynamic> body,
       required String endPoint,
       bool? showLogs,
-      Either<Failure, T> Function(
+      Either<HttpFailure, T> Function(
               int statusCode, Map<String, dynamic> responseBody)?
           failureHandler,
       Map<String, String>? header}) async {
@@ -135,12 +135,12 @@ class NetworkHandler {
     return fetch<T>(request: request);
   }
 
-  Future<Either<Failure, T>> delete<T>(
+  Future<Either<HttpFailure, T>> delete<T>(
       {required T Function(dynamic data) fromData,
       required String endPoint,
       Map<String, dynamic>? body,
       bool? showLogs,
-      Either<Failure, T> Function(
+      Either<HttpFailure, T> Function(
               int statusCode, Map<String, dynamic> responseBody)?
           failureHandler,
       Map<String, String>? header}) async {
@@ -163,7 +163,7 @@ class NetworkHandler {
     return fetch<T>(request: request);
   }
 
-  Either<Failure, T> _handleResponse<T>({
+  Either<HttpFailure, T> _handleResponse<T>({
     required Response response,
     required RequestData<T> request,
   }) {
@@ -197,7 +197,7 @@ class NetworkHandler {
           log.printWarning(
               warn: "status code: ${response.statusCode}",
               canPrint: request.showLogs);
-          return left(Failure.withData(
+          return left(HttpFailure.withData(
               statusCode: response.statusCode,
               request: request,
               enableDialogue: _enableDialogue,
@@ -222,7 +222,7 @@ class NetworkHandler {
         log.printWarning(
             warn: "status code: ${response.statusCode}",
             canPrint: request.showLogs);
-        return left(Failure.withData(
+        return left(HttpFailure.withData(
             statusCode: response.statusCode,
             enableDialogue: _enableDialogue,
             request: request,
@@ -273,7 +273,8 @@ class NetworkHandler {
     }
   }
 
-  Future<Either<Failure, T>> fetch<T>({required RequestData<T> request}) async {
+  Future<Either<HttpFailure, T>> fetch<T>(
+      {required RequestData<T> request}) async {
     log.printInfo(info: "body: ${request.body}", canPrint: request.showLogs);
     try {
       final http.Response response = await call(request: request);
@@ -288,7 +289,7 @@ class NetworkHandler {
           error: "error: ${e.toString()}", canPrint: request.showLogs);
 
       return left(
-        Failure.withData(
+        HttpFailure.withData(
           statusCode: -1,
           enableDialogue: _enableDialogue,
           request: request,

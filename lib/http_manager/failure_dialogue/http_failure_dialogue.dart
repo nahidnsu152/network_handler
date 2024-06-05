@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../models/failure.dart';
-import 'failure_details_page.dart';
+import '../models/http_failure.dart';
+import 'http_failure_details_page.dart';
 
-class FailureDialogue extends StatelessWidget {
-  final Failure failure;
-  const FailureDialogue(this.failure, {super.key});
+class HttpFailureDialogue extends StatelessWidget {
+  final HttpFailure failure;
+  const HttpFailureDialogue(this.failure, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -44,17 +44,18 @@ class FailureDialogue extends StatelessWidget {
               Navigator.of(context).pop();
 
               Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => FailureDetailsPage(failure: failure)));
+                  builder: (context) =>
+                      HttpFailureDetailsPage(failure: failure)));
             },
             child: const Text('View details'))
       ],
     );
   }
 
-  static show(BuildContext context, {required Failure failure}) {
-    if (failure != Failure.none()) {
+  static show(BuildContext context, {required HttpFailure failure}) {
+    if (failure != HttpFailure.none()) {
       showDialog(
-          context: context, builder: (context) => FailureDialogue(failure));
+          context: context, builder: (context) => HttpFailureDialogue(failure));
     }
   }
 }

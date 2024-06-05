@@ -2,11 +2,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../models/failure.dart';
+import '../models/http_failure.dart';
 
-class FailureDetailsPage extends StatelessWidget {
-  final Failure failure;
-  const FailureDetailsPage({super.key, required this.failure});
+class HttpFailureDetailsPage extends StatelessWidget {
+  final HttpFailure failure;
+  const HttpFailureDetailsPage({super.key, required this.failure});
 
   @override
   Widget build(BuildContext context) {
