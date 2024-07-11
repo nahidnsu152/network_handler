@@ -12,21 +12,34 @@ class HttpFailure extends Equatable {
   final String error;
   final bool _enableDialogue;
   final int statusCode;
+  final String errorMessage;
 
-  const HttpFailure(
-      {required this.error, bool enableDialogue = true, this.statusCode = -1})
-      : _enableDialogue = enableDialogue;
+  const HttpFailure({
+    required this.error,
+    bool enableDialogue = true,
+    this.statusCode = -1,
+    this.errorMessage = 'An unknown error occurred',
+  }) : _enableDialogue = enableDialogue;
 
-  HttpFailure copyWith({String? tag, String? error, int? statusCode}) {
+  HttpFailure copyWith({
+    String? error,
+    int? statusCode,
+    String? errorMessage,
+  }) {
     return HttpFailure(
-        error: error ?? this.error, statusCode: statusCode ?? this.statusCode);
+      error: error ?? this.error,
+      statusCode: statusCode ?? this.statusCode,
+      enableDialogue: _enableDialogue,
+      errorMessage: errorMessage ?? this.errorMessage,
+    );
   }
 
-  factory HttpFailure.withData(
-      {required int statusCode,
-      required RequestData request,
-      bool enableDialogue = true,
-      required dynamic error}) {
+  factory HttpFailure.withData({
+    required int statusCode,
+    required RequestData request,
+    bool enableDialogue = true,
+    required dynamic error,
+  }) {
     final Map<String, dynamic> _errorMap = {
       'url': request.uri.path,
       'method': request.method.name.toUpperCase(),
@@ -36,26 +49,53 @@ class HttpFailure extends Equatable {
       if (statusCode > 0) 'status_code': statusCode
     };
     final encoder = JsonEncoder.withIndent(' ' * 2);
-    // return encoder.convert(toJson());
     final String _errorStr = encoder.convert(_errorMap);
+    final String _errorMessage = _extractErrorMessage(error);
+
     return HttpFailure(
-        error: _errorStr,
-        enableDialogue: enableDialogue,
-        statusCode: statusCode);
+      error: _errorStr,
+      enableDialogue: enableDialogue,
+      statusCode: statusCode,
+      errorMessage: _errorMessage,
+    );
   }
+
   factory HttpFailure.none() => const HttpFailure(error: '');
 
-  @override
-  String toString() => 'CleanFailure(error: $error)';
+  static String _extractErrorMessage(dynamic error) {
+    try {
+      final Map<String, dynamic> errorMap =
+          error is String ? jsonDecode(error) : error;
+      return errorMap['message'] ?? 'An unknown error occurred';
+    } catch (e) {
+      return 'An unknown error occurred';
+    }
+  }
 
-  showDialogue(BuildContext context) {
+  @override
+  String toString() =>
+      'HttpFailure(error: $error, errorMessage: $errorMessage)';
+
+  void showDialogue(BuildContext context) {
     if (_enableDialogue) {
-      HttpFailureDialogue.show(context, failure: this);
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Error'),
+          content: Text(errorMessage),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
     } else {
       Logger.e(this);
     }
   }
 
   @override
-  List<Object?> get props => [error];
+  List<Object?> get props => [error, errorMessage];
 }

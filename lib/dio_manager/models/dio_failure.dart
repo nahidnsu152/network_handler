@@ -4,21 +4,34 @@ class DioFailure extends Equatable {
   final String error;
   final bool _enableDialogue;
   final int statusCode;
+  final String errorMessage;
 
-  const DioFailure(
-      {required this.error, bool enableDialogue = true, this.statusCode = -1})
-      : _enableDialogue = enableDialogue;
+  const DioFailure({
+    required this.error,
+    bool enableDialogue = true,
+    this.statusCode = -1,
+    this.errorMessage = 'An unknown error occurred',
+  }) : _enableDialogue = enableDialogue;
 
-  DioFailure copyWith({String? tag, String? error, int? statusCode}) {
+  DioFailure copyWith({
+    String? error,
+    int? statusCode,
+    String? errorMessage,
+  }) {
     return DioFailure(
-        error: error ?? this.error, statusCode: statusCode ?? this.statusCode);
+      error: error ?? this.error,
+      statusCode: statusCode ?? this.statusCode,
+      enableDialogue: _enableDialogue,
+      errorMessage: errorMessage ?? this.errorMessage,
+    );
   }
 
-  factory DioFailure.withData(
-      {required int statusCode,
-      required RequestData request,
-      bool enableDialogue = true,
-      required dynamic error}) {
+  factory DioFailure.withData({
+    required int statusCode,
+    required RequestData request,
+    bool enableDialogue = true,
+    required dynamic error,
+  }) {
     final Map<String, dynamic> errorMap = {
       'url': request.uri.path,
       'method': request.method.name.toUpperCase(),
@@ -28,20 +41,47 @@ class DioFailure extends Equatable {
       if (statusCode > 0) 'status_code': statusCode
     };
     final encoder = JsonEncoder.withIndent(' ' * 2);
-    // return encoder.convert(toJson());
     final String errorStr = encoder.convert(errorMap);
+    final String errorMessage = _extractErrorMessage(error);
+
     return DioFailure(
-        error: errorStr,
-        enableDialogue: enableDialogue,
-        statusCode: statusCode);
+      error: errorStr,
+      enableDialogue: enableDialogue,
+      statusCode: statusCode,
+      errorMessage: errorMessage,
+    );
   }
+
   factory DioFailure.none() => const DioFailure(error: '');
 
-  @override
-  String toString() => 'CleanFailure(error: $error)';
+  static String _extractErrorMessage(dynamic error) {
+    try {
+      final Map<String, dynamic> errorMap =
+          error is String ? jsonDecode(error) : error;
+      return errorMap['message'] ?? 'An unknown error occurred';
+    } catch (e) {
+      return 'An unknown error occurred';
+    }
+  }
 
-  showDialogue(BuildContext context) {
+  @override
+  String toString() => 'DioFailure(error: $error, errorMessage: $errorMessage)';
+
+  void showDialogue(BuildContext context) {
     if (_enableDialogue) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Error'),
+          content: Text(errorMessage),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
     } else {
       PrettyDioLogger(
         error: true,
@@ -53,5 +93,5 @@ class DioFailure extends Equatable {
   }
 
   @override
-  List<Object?> get props => [error];
+  List<Object?> get props => [error, errorMessage];
 }
