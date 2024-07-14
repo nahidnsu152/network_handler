@@ -24,16 +24,22 @@ class HttpService {
   };
   Map<String, String> get header => _header;
 
-  void setHeader(Map<String, String> header) => _header = {..._header, ...header};
-
   String getBaseUrl() => _baseUrl;
   HttpService._();
 
   static final HttpService instance = HttpService._();
 
+  void setHeader(Map<String, String> header) =>
+      _header = {..._header, ...header};
+      
   void setToken(String token) {
     _token = token;
     setHeader({'Authorization': 'Bearer $_token'});
+  }
+
+  void removeToken() {
+    _token = '';
+    _header.remove('Authorization');
   }
 
   void removeHeader(String key) {
@@ -44,7 +50,9 @@ class HttpService {
     required T Function(dynamic data) fromData,
     required String endPoint,
     bool? showLogs,
-    Either<HttpFailure, T> Function(int statusCode, Map<String, dynamic> responseBody)? failureHandler,
+    Either<HttpFailure, T> Function(
+            int statusCode, Map<String, dynamic> responseBody)?
+        failureHandler,
     Map<String, String>? header,
   }) async {
     final bool canPrint = showLogs ?? _showLogs;
@@ -67,7 +75,9 @@ class HttpService {
     required Map<String, dynamic>? body,
     bool? showLogs,
     required String endPoint,
-    Either<HttpFailure, T> Function(int statusCode, Map<String, dynamic> responseBody)? failureHandler,
+    Either<HttpFailure, T> Function(
+            int statusCode, Map<String, dynamic> responseBody)?
+        failureHandler,
     Map<String, String>? header,
   }) async {
     final bool canPrint = showLogs ?? _showLogs;
@@ -95,7 +105,9 @@ class HttpService {
     required Map<String, dynamic>? body,
     required String endPoint,
     bool? showLogs,
-    Either<HttpFailure, T> Function(int statusCode, Map<String, dynamic> responseBody)? failureHandler,
+    Either<HttpFailure, T> Function(
+            int statusCode, Map<String, dynamic> responseBody)?
+        failureHandler,
     Map<String, String>? header,
   }) async {
     final bool canPrint = showLogs ?? _showLogs;
@@ -123,7 +135,9 @@ class HttpService {
     required Map<String, dynamic> body,
     required String endPoint,
     bool? showLogs,
-    Either<HttpFailure, T> Function(int statusCode, Map<String, dynamic> responseBody)? failureHandler,
+    Either<HttpFailure, T> Function(
+            int statusCode, Map<String, dynamic> responseBody)?
+        failureHandler,
     Map<String, String>? header,
   }) async {
     final bool canPrint = showLogs ?? _showLogs;
@@ -149,7 +163,9 @@ class HttpService {
     required String endPoint,
     Map<String, dynamic>? body,
     bool? showLogs,
-    Either<HttpFailure, T> Function(int statusCode, Map<String, dynamic> responseBody)? failureHandler,
+    Either<HttpFailure, T> Function(
+            int statusCode, Map<String, dynamic> responseBody)?
+        failureHandler,
     Map<String, String>? header,
   }) async {
     final bool canPrint = showLogs ?? _showLogs;
