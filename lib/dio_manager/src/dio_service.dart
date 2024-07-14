@@ -21,11 +21,6 @@ class DioService {
 
   static final DioService instance = DioService._();
 
-  void setToken(String token) {
-    _token = token;
-    _setHeaders();
-  }
-
   void logSetup({
     bool? responseBody,
     int? width,
@@ -49,6 +44,11 @@ class DioService {
     _dio.options.baseUrl = baseUrl;
   }
 
+  void setToken(String token) {
+    _token = token;
+    _setHeaders();
+  }
+
   void addHeader(String key, String value) {
     _additionalHeaders[key] = value;
     _setHeaders();
@@ -63,7 +63,7 @@ class DioService {
     _dio.options.headers = {
       "content-type": "application/json",
       "accept": "application/json",
-      if (_token.isNotEmpty) "authorization": "Bearer $_token",
+      if (_token.isNotEmpty) "authorization": _token,
       "language": "en",
       ..._additionalHeaders
     };
