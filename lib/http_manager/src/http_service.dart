@@ -31,10 +31,10 @@ class HttpService {
 
   void setHeader(Map<String, String> header) =>
       _header = {..._header, ...header};
-      
+
   void setToken(String token) {
     _token = token;
-    setHeader({'Authorization': 'Bearer $_token'});
+    setHeader({'Authorization': _token});
   }
 
   void removeToken() {
