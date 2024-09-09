@@ -49,11 +49,6 @@ class DioService {
     _setHeaders();
   }
 
-  void removeToken() {
-    _token = '';
-    _setHeaders();
-  }
-
   void addHeader(String key, String value) {
     _additionalHeaders[key] = value;
     _setHeaders();
@@ -88,72 +83,174 @@ class DioService {
   }) async {
     try {
       final response = await request();
-      if (response.statusCode! >= 200 && response.statusCode! < 300) {
-        final responseData = fromData(response.data);
-        return Right(responseData);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return Right(fromData(response.data));
       } else {
-        if (failureHandler != null) {
-          return failureHandler(response.statusCode!, response.data);
-        } else {
-          return Left(DioFailure.withData(
-            statusCode: response.statusCode!,
+        return Left(
+          DioFailure.withData(
+            statusCode: response.statusCode ?? -1,
             request: RequestData(
-                method: method, uri: Uri.parse("$_baseUrl$endPoint")),
+              method: method,
+              uri: Uri.parse(url ?? "$_baseUrl$endPoint"),
+            ),
             error: response.data,
-          ));
-        }
+          ),
+        );
       }
     } catch (error) {
       if (error is DioException) {
-        return Left(DioFailure.withData(
-          statusCode: error.response?.statusCode ?? -1,
-          request:
-              RequestData(method: method, uri: Uri.parse("$_baseUrl$endPoint")),
-          error: error.message,
-        ));
+        return Left(
+          DioFailure.withData(
+            statusCode: error.response?.statusCode ?? -1,
+            request: RequestData(
+              method: method,
+              uri: Uri.parse(url ?? "$_baseUrl$endPoint"),
+            ),
+            error: error.message,
+          ),
+        );
       } else {
-        return Left(DioFailure.withData(
-          statusCode: -1,
-          request:
-              RequestData(method: method, uri: Uri.parse("$_baseUrl$endPoint")),
-          error: error.toString(),
-        ));
+        return Left(
+          DioFailure.withData(
+            statusCode: -1,
+            request: RequestData(
+              method: method,
+              uri: Uri.parse(url ?? "$_baseUrl$endPoint"),
+            ),
+            error: error.toString(),
+          ),
+        );
       }
     }
   }
 
-  // File download method
+  Future<Either<DioFailure, T>> get<T>({
+    required T Function(dynamic data) fromData,
+    required String endPoint,
+    Map<String, String>? header,
+    bool? showLogs,
+    Either<DioFailure, T> Function(
+            int statusCode, Map<String, dynamic> responseBody)?
+        failureHandler,
+  }) {
+    return _handleRequest(
+      request: () => _dio.get(
+        endPoint,
+        options: Options(headers: header),
+      ),
+      fromData: fromData,
+      method: RequestMethod.get,
+      endPoint: endPoint,
+      failureHandler: failureHandler,
+    );
+  }
+
+  Future<Either<DioFailure, T>> post<T>({
+    required T Function(dynamic data) fromData,
+    required String endPoint,
+    dynamic data,
+    Map<String, String>? header,
+    bool? showLogs,
+    Either<DioFailure, T> Function(
+            int statusCode, Map<String, dynamic> responseBody)?
+        failureHandler,
+  }) {
+    return _handleRequest(
+      request: () => _dio.post(
+        endPoint,
+        data: data,
+        options: Options(headers: header),
+      ),
+      fromData: fromData,
+      method: RequestMethod.post,
+      endPoint: endPoint,
+      failureHandler: failureHandler,
+    );
+  }
+
+  Future<Either<DioFailure, T>> patch<T>({
+    required T Function(dynamic data) fromData,
+    required String endPoint,
+    dynamic data,
+    Map<String, String>? header,
+    bool? showLogs,
+    Either<DioFailure, T> Function(
+            int statusCode, Map<String, dynamic> responseBody)?
+        failureHandler,
+  }) {
+    return _handleRequest(
+      request: () => _dio.patch(
+        endPoint,
+        data: data,
+        options: Options(headers: header),
+      ),
+      fromData: fromData,
+      method: RequestMethod.patch,
+      endPoint: endPoint,
+      failureHandler: failureHandler,
+    );
+  }
+
+  Future<Either<DioFailure, T>> put<T>({
+    required T Function(dynamic data) fromData,
+    required String endPoint,
+    dynamic data,
+    Map<String, String>? header,
+    bool? showLogs,
+    Either<DioFailure, T> Function(
+            int statusCode, Map<String, dynamic> responseBody)?
+        failureHandler,
+  }) {
+    return _handleRequest(
+      request: () => _dio.put(
+        endPoint,
+        data: data,
+        options: Options(headers: header),
+      ),
+      fromData: fromData,
+      method: RequestMethod.put,
+      endPoint: endPoint,
+      failureHandler: failureHandler,
+    );
+  }
+
+  Future<Either<DioFailure, T>> upload<T>({
+    required T Function(dynamic data) fromData,
+    required String endPoint,
+    required FormData data,
+    Map<String, String>? header,
+    bool? showLogs,
+    Either<DioFailure, T> Function(
+            int statusCode, Map<String, dynamic> responseBody)?
+        failureHandler,
+  }) {
+    return _handleRequest(
+      request: () => _dio.post(
+        endPoint,
+        data: data,
+        options: Options(headers: header),
+      ),
+      fromData: fromData,
+      method: RequestMethod.post,
+      endPoint: endPoint,
+      failureHandler: failureHandler,
+    );
+  }
+
   Future<Either<DioFailure, T>> download<T>({
     required String url,
     required String savePath,
     ProgressCallback? onReceiveProgress,
-  }) async {
-    try {
-      final response = await _dio.download(url, savePath,
-          onReceiveProgress: onReceiveProgress);
-      if (response.statusCode == 200) {
-        return Right(response.data as T);
-      } else {
-        return Left(DioFailure.withData(
-          statusCode: response.statusCode ?? -1,
-          request: RequestData(method: RequestMethod.get, uri: Uri.parse(url)),
-          error: response.data,
-        ));
-      }
-    } catch (error) {
-      if (error is DioException) {
-        return Left(DioFailure.withData(
-          statusCode: error.response?.statusCode ?? -1,
-          request: RequestData(method: RequestMethod.get, uri: Uri.parse(url)),
-          error: error.message,
-        ));
-      } else {
-        return Left(DioFailure.withData(
-          statusCode: -1,
-          request: RequestData(method: RequestMethod.get, uri: Uri.parse(url)),
-          error: error.toString(),
-        ));
-      }
-    }
+  }) {
+    return _handleRequest(
+      request: () => _dio.download(
+        url,
+        savePath,
+        onReceiveProgress: onReceiveProgress,
+      ),
+      fromData: (data) => data as T,
+      method: RequestMethod.get,
+      url: url,
+    );
   }
 }
