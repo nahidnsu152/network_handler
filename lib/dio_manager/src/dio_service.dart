@@ -5,11 +5,20 @@ class DioService {
   late String _baseUrl;
   final Map<String, String> _additionalHeaders = {};
   final Dio _dio = Dio();
-  late bool? showResponseHeader;
-  late bool? requestBody;
-  late int? maxWidth;
+
+  // Consolidated Logger Options
+  bool _showResponseHeader = false;
+  bool _requestBody = false;
+  int _maxWidth = 150;
 
   DioService._() {
+    _initializeDio();
+  }
+
+  static final DioService instance = DioService._();
+
+  // Initializes Dio with common options and a single logger instance
+  void _initializeDio() {
     _dio.interceptors.add(
       PrettyDioLogger(
         requestHeader: true,
@@ -17,9 +26,9 @@ class DioService {
         responseBody: true,
       ),
     );
+    _setDefaultHeaders();
+    _setTimeouts();
   }
-
-  static final DioService instance = DioService._();
 
   void logSetup({
     bool? responseBody,
@@ -27,14 +36,17 @@ class DioService {
     bool? responseHeader,
     bool? request,
   }) {
-    showResponseHeader = responseHeader;
-    requestBody = request;
-    maxWidth = width;
+    _showResponseHeader = responseHeader ?? _showResponseHeader;
+    _requestBody = request ?? _requestBody;
+    _maxWidth = width ?? _maxWidth;
+
+    // Avoid adding multiple instances of PrettyDioLogger
+    _dio.interceptors.clear();
     _dio.interceptors.add(
       PrettyDioLogger(
-        responseBody: requestBody ?? false,
-        responseHeader: showResponseHeader ?? false,
-        maxWidth: maxWidth ?? 150,
+        responseBody: _requestBody,
+        responseHeader: _showResponseHeader,
+        maxWidth: _maxWidth,
       ),
     );
   }
@@ -46,20 +58,21 @@ class DioService {
 
   void setToken(String token) {
     _token = token;
-    _setHeaders();
+    _setDefaultHeaders();
   }
 
   void addHeader(String key, String value) {
     _additionalHeaders[key] = value;
-    _setHeaders();
+    _setDefaultHeaders();
   }
 
   void removeHeader(String key) {
     _additionalHeaders.remove(key);
-    _setHeaders();
+    _setDefaultHeaders();
   }
 
-  void _setHeaders() {
+  // Consolidated function to set headers
+  void _setDefaultHeaders() {
     _dio.options.headers = {
       "content-type": "application/json",
       "accept": "application/json",
@@ -67,28 +80,32 @@ class DioService {
       "language": "en",
       ..._additionalHeaders
     };
+  }
+
+  // Consolidated timeout settings
+  void _setTimeouts() {
     _dio.options.receiveTimeout = const Duration(milliseconds: 30000);
     _dio.options.sendTimeout = const Duration(milliseconds: 30000);
   }
 
+  // Consolidated request handler for all HTTP methods
   Future<Either<DioFailure, T>> _handleRequest<T>({
     required Future<Response> Function() request,
     required T Function(dynamic data) fromData,
-    RequestMethod method = RequestMethod.get,
+    required RequestMethod method,
     String? endPoint,
     String? url,
-    Either<DioFailure, T> Function(
-            int statusCode, Map<String, dynamic> responseBody)?
-        failureHandler,
   }) async {
     try {
       final response = await request();
-      if (response.statusCode == 200 || response.statusCode == 201) {
+      final statusCode = response.statusCode ?? -1;
+
+      if (statusCode >= 200 && statusCode < 300) {
         return Right(fromData(response.data));
       } else {
         return Left(
           DioFailure.withData(
-            statusCode: response.statusCode ?? -1,
+            statusCode: statusCode,
             request: RequestData(
               method: method,
               uri: Uri.parse(url ?? "$_baseUrl$endPoint"),
@@ -98,40 +115,27 @@ class DioService {
         );
       }
     } catch (error) {
-      if (error is DioException) {
-        return Left(
-          DioFailure.withData(
-            statusCode: error.response?.statusCode ?? -1,
-            request: RequestData(
-              method: method,
-              uri: Uri.parse(url ?? "$_baseUrl$endPoint"),
-            ),
-            error: error.message,
+      final statusCode = (error is DioException) ? error.response?.statusCode ?? -1 : -1;
+      final errorMessage = (error is DioException) ? error.message : error.toString();
+
+      return Left(
+        DioFailure.withData(
+          statusCode: statusCode,
+          request: RequestData(
+            method: method,
+            uri: Uri.parse(url ?? "$_baseUrl$endPoint"),
           ),
-        );
-      } else {
-        return Left(
-          DioFailure.withData(
-            statusCode: -1,
-            request: RequestData(
-              method: method,
-              uri: Uri.parse(url ?? "$_baseUrl$endPoint"),
-            ),
-            error: error.toString(),
-          ),
-        );
-      }
+          error: errorMessage,
+        ),
+      );
     }
   }
 
+  // GET request handler
   Future<Either<DioFailure, T>> get<T>({
     required T Function(dynamic data) fromData,
     required String endPoint,
     Map<String, String>? header,
-    bool? showLogs,
-    Either<DioFailure, T> Function(
-            int statusCode, Map<String, dynamic> responseBody)?
-        failureHandler,
   }) {
     return _handleRequest(
       request: () => _dio.get(
@@ -141,19 +145,15 @@ class DioService {
       fromData: fromData,
       method: RequestMethod.get,
       endPoint: endPoint,
-      failureHandler: failureHandler,
     );
   }
 
+  // POST request handler
   Future<Either<DioFailure, T>> post<T>({
     required T Function(dynamic data) fromData,
     required String endPoint,
     dynamic data,
     Map<String, String>? header,
-    bool? showLogs,
-    Either<DioFailure, T> Function(
-            int statusCode, Map<String, dynamic> responseBody)?
-        failureHandler,
   }) {
     return _handleRequest(
       request: () => _dio.post(
@@ -164,19 +164,15 @@ class DioService {
       fromData: fromData,
       method: RequestMethod.post,
       endPoint: endPoint,
-      failureHandler: failureHandler,
     );
   }
 
+  // PATCH request handler
   Future<Either<DioFailure, T>> patch<T>({
     required T Function(dynamic data) fromData,
     required String endPoint,
     dynamic data,
     Map<String, String>? header,
-    bool? showLogs,
-    Either<DioFailure, T> Function(
-            int statusCode, Map<String, dynamic> responseBody)?
-        failureHandler,
   }) {
     return _handleRequest(
       request: () => _dio.patch(
@@ -187,19 +183,15 @@ class DioService {
       fromData: fromData,
       method: RequestMethod.patch,
       endPoint: endPoint,
-      failureHandler: failureHandler,
     );
   }
 
+  // PUT request handler
   Future<Either<DioFailure, T>> put<T>({
     required T Function(dynamic data) fromData,
     required String endPoint,
     dynamic data,
     Map<String, String>? header,
-    bool? showLogs,
-    Either<DioFailure, T> Function(
-            int statusCode, Map<String, dynamic> responseBody)?
-        failureHandler,
   }) {
     return _handleRequest(
       request: () => _dio.put(
@@ -210,19 +202,15 @@ class DioService {
       fromData: fromData,
       method: RequestMethod.put,
       endPoint: endPoint,
-      failureHandler: failureHandler,
     );
   }
 
+  // File upload handler
   Future<Either<DioFailure, T>> upload<T>({
     required T Function(dynamic data) fromData,
     required String endPoint,
     required FormData data,
     Map<String, String>? header,
-    bool? showLogs,
-    Either<DioFailure, T> Function(
-            int statusCode, Map<String, dynamic> responseBody)?
-        failureHandler,
   }) {
     return _handleRequest(
       request: () => _dio.post(
@@ -233,10 +221,10 @@ class DioService {
       fromData: fromData,
       method: RequestMethod.post,
       endPoint: endPoint,
-      failureHandler: failureHandler,
     );
   }
 
+  // File download handler
   Future<Either<DioFailure, T>> download<T>({
     required String url,
     required String savePath,
