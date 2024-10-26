@@ -4,8 +4,8 @@ import 'package:flutter_easylogger/flutter_logger.dart';
 class NetworkLog {
   init() => Logger.init(
         true,
-        isShowFile: false,
-        isShowTime: false,
+        isShowFile: true,
+        isShowTime: true,
         isShowNavigation: true,
         levelVerbose: 247,
         levelDebug: 15,
