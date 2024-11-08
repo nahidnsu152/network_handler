@@ -5,7 +5,7 @@ class NetworkLog {
   init() => Logger.init(
         true,
         isShowFile: true,
-        isShowTime: true,
+        // isShowTime: true,
         isShowNavigation: true,
         levelVerbose: 247,
         levelDebug: 15,
