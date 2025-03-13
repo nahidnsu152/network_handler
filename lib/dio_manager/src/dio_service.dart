@@ -123,8 +123,8 @@ class DioService {
           final T parsedData = fromData(response.data);
           return Right(parsedData);
         } catch (e, stackTrace) {
-          Logger.e("[TYPE ERROR] Failed to parse response.");
-          Logger.e("[STACKTRACE] $stackTrace");
+          Logger.e("[Error]: $e");
+          Logger.e("[STACKTRACE]: $stackTrace");
           return Left(
             DioFailure.withData(
               statusCode: response.statusCode!,
