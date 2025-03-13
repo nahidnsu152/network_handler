@@ -137,7 +137,7 @@ class DioService {
           );
         }
       } else {
-        Logger.e("[ERROR] Request failed with status: ${response.statusCode}");
+        Logger.e("[ERROR]: Request failed with status: ${response.statusCode}");
         return Left(
           DioFailure.withData(
             statusCode: response.statusCode!,
@@ -184,7 +184,7 @@ class DioService {
       } catch (error) {
         retryCount++;
         if (retryCount >= _maxRetries) {
-          Logger.e("[RETRY FAILED] All attempts exhausted. Giving up.");
+          Logger.e("[RETRY FAILED]: All attempts exhausted. Giving up.");
           return Left(
             DioFailure.withData(
               statusCode: -1,
