@@ -8,7 +8,10 @@ class RequestData<T> {
   final Map<String, String>? headers;
   final dynamic body;
   final Either<DioFailure, T> Function(
-      int statusCode, Map<String, dynamic> responseBody)? failureHandler;
+    int statusCode,
+    Map<String, dynamic> responseBody,
+  )?
+  failureHandler;
 
   RequestData({
     required this.method,
@@ -21,10 +24,4 @@ class RequestData<T> {
   });
 }
 
-enum RequestMethod {
-  get,
-  post,
-  put,
-  patch,
-  delete,
-}
+enum RequestMethod { get, post, put, patch, delete }
