@@ -51,8 +51,10 @@ class HttpService {
     required String endPoint,
     bool? showLogs,
     Either<HttpFailure, T> Function(
-            int statusCode, Map<String, dynamic> responseBody)?
-        failureHandler,
+      int statusCode,
+      Map<String, dynamic> responseBody,
+    )?
+    failureHandler,
     Map<String, String>? header,
   }) async {
     final bool canPrint = showLogs ?? _showLogs;
@@ -76,8 +78,10 @@ class HttpService {
     bool? showLogs,
     required String endPoint,
     Either<HttpFailure, T> Function(
-            int statusCode, Map<String, dynamic> responseBody)?
-        failureHandler,
+      int statusCode,
+      Map<String, dynamic> responseBody,
+    )?
+    failureHandler,
     Map<String, String>? header,
   }) async {
     final bool canPrint = showLogs ?? _showLogs;
@@ -106,8 +110,10 @@ class HttpService {
     required String endPoint,
     bool? showLogs,
     Either<HttpFailure, T> Function(
-            int statusCode, Map<String, dynamic> responseBody)?
-        failureHandler,
+      int statusCode,
+      Map<String, dynamic> responseBody,
+    )?
+    failureHandler,
     Map<String, String>? header,
   }) async {
     final bool canPrint = showLogs ?? _showLogs;
@@ -136,8 +142,10 @@ class HttpService {
     required String endPoint,
     bool? showLogs,
     Either<HttpFailure, T> Function(
-            int statusCode, Map<String, dynamic> responseBody)?
-        failureHandler,
+      int statusCode,
+      Map<String, dynamic> responseBody,
+    )?
+    failureHandler,
     Map<String, String>? header,
   }) async {
     final bool canPrint = showLogs ?? _showLogs;
@@ -164,8 +172,10 @@ class HttpService {
     Map<String, dynamic>? body,
     bool? showLogs,
     Either<HttpFailure, T> Function(
-            int statusCode, Map<String, dynamic> responseBody)?
-        failureHandler,
+      int statusCode,
+      Map<String, dynamic> responseBody,
+    )?
+    failureHandler,
     Map<String, String>? header,
   }) async {
     final bool canPrint = showLogs ?? _showLogs;
@@ -200,7 +210,6 @@ class HttpService {
 
     if (response.statusCode >= 200 && response.statusCode <= 299) {
       final regResponse = cleanJsonDecode(response.body);
-
       try {
         final T typedResponse = request.fromData(regResponse);
         log.printSuccess(
@@ -208,7 +217,16 @@ class HttpService {
           canPrint: request.showLogs,
         );
         return right(typedResponse);
-      } catch (e) {
+      } catch (e, stackTrace) {
+        log.printError(
+          error: "Error parsing response: $e",
+          canPrint: request.showLogs,
+        );
+        log.printError(
+          error: "StackTrace: $stackTrace",
+          canPrint: request.showLogs,
+        );
+
         if (request.failureHandler != null) {
           return request.failureHandler!(
             response.statusCode,
@@ -231,12 +249,14 @@ class HttpService {
             warn: "status code: ${response.statusCode}",
             canPrint: request.showLogs,
           );
-          return left(HttpFailure.withData(
-            statusCode: response.statusCode,
-            request: request,
-            enableDialogue: _enableDialogue,
-            error: cleanJsonDecode(response.body),
-          ));
+          return left(
+            HttpFailure.withData(
+              statusCode: response.statusCode,
+              request: request,
+              enableDialogue: _enableDialogue,
+              error: cleanJsonDecode(response.body),
+            ),
+          );
         }
       }
     } else {
@@ -262,12 +282,14 @@ class HttpService {
           warn: "status code: ${response.statusCode}",
           canPrint: request.showLogs,
         );
-        return left(HttpFailure.withData(
-          statusCode: response.statusCode,
-          enableDialogue: _enableDialogue,
-          request: request,
-          error: cleanJsonDecode(response.body),
-        ));
+        return left(
+          HttpFailure.withData(
+            statusCode: response.statusCode,
+            enableDialogue: _enableDialogue,
+            request: request,
+            error: cleanJsonDecode(response.body),
+          ),
+        );
       }
     }
   }
@@ -283,10 +305,7 @@ class HttpService {
   Future<http.Response> call({required RequestData request}) async {
     switch (request.method) {
       case RequestMethod.get:
-        return http.get(
-          request.uri,
-          headers: request.headers,
-        );
+        return http.get(request.uri, headers: request.headers);
       case RequestMethod.post:
         return http.post(
           request.uri,
@@ -320,15 +339,15 @@ class HttpService {
     log.printInfo(info: "body: ${request.body}", canPrint: request.showLogs);
     try {
       final http.Response response = await call(request: request);
-
-      return _handleResponse<T>(
-        response: response,
-        request: request,
-      );
-    } catch (e) {
+      return _handleResponse<T>(response: response, request: request);
+    } catch (e, stackTrace) {
       log.printError(error: "header: $_header", canPrint: request.showLogs);
       log.printError(
         error: "error: ${e.toString()}",
+        canPrint: request.showLogs,
+      );
+      log.printError(
+        error: "stackTrace: $stackTrace",
         canPrint: request.showLogs,
       );
 
