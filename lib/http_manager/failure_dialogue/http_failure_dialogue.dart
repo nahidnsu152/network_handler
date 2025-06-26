@@ -14,48 +14,51 @@ class HttpFailureDialogue extends StatelessWidget {
       actionsAlignment: MainAxisAlignment.spaceBetween,
       contentTextStyle: const TextStyle(color: Colors.black),
       titleTextStyle: const TextStyle(
-          color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
+        color: Colors.black,
+        fontWeight: FontWeight.bold,
+        fontSize: 18,
+      ),
       title: const Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.error_outline_sharp,
-            color: Colors.red,
-          ),
-          SizedBox(
-            width: 5,
-          ),
+          Icon(Icons.error_outline_sharp, color: Colors.red),
+          SizedBox(width: 5),
         ],
       ),
-      content: Text(
-        failure.error,
-        maxLines: 4,
-      ),
+      content: Text(failure.error, maxLines: 4),
       actions: [
         TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Ignore')),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: const Text('Ignore'),
+        ),
         ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green, shape: const StadiumBorder()),
-            onPressed: () {
-              Navigator.of(context).pop();
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.green,
+            shape: const StadiumBorder(),
+          ),
+          onPressed: () {
+            Navigator.of(context).pop();
 
-              Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) =>
-                      HttpFailureDetailsPage(failure: failure)));
-            },
-            child: const Text('View details'))
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => HttpFailureDetailsPage(failure: failure),
+              ),
+            );
+          },
+          child: const Text('View details'),
+        ),
       ],
     );
   }
 
-  static show(BuildContext context, {required HttpFailure failure}) {
+  static void show(BuildContext context, {required HttpFailure failure}) {
     if (failure != HttpFailure.none()) {
       showDialog(
-          context: context, builder: (context) => HttpFailureDialogue(failure));
+        context: context,
+        builder: (context) => HttpFailureDialogue(failure),
+      );
     }
   }
 }

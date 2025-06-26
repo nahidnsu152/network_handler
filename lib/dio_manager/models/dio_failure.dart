@@ -100,5 +100,6 @@ class DioFailure extends Equatable {
     }
   }
 
+  @override
   List<Object?> get props => [error, statusCode, errorMessage, isRetryable];
 }

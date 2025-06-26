@@ -5,7 +5,6 @@ import 'dart:convert';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
-import '../network_handler.dart';
 import 'request_options.dart';
 
 class HttpFailure extends Equatable {
@@ -21,11 +20,7 @@ class HttpFailure extends Equatable {
     this.errorMessage = 'An unknown error occurred',
   }) : _enableDialogue = enableDialogue;
 
-  HttpFailure copyWith({
-    String? error,
-    int? statusCode,
-    String? errorMessage,
-  }) {
+  HttpFailure copyWith({String? error, int? statusCode, String? errorMessage}) {
     return HttpFailure(
       error: error ?? this.error,
       statusCode: statusCode ?? this.statusCode,
@@ -46,7 +41,7 @@ class HttpFailure extends Equatable {
       if (request.headers != null) 'header': request.headers,
       if (request.body != null) 'body': request.body,
       'error': error,
-      if (statusCode > 0) 'status_code': statusCode
+      if (statusCode > 0) 'status_code': statusCode,
     };
     final encoder = JsonEncoder.withIndent(' ' * 2);
     final String _errorStr = encoder.convert(_errorMap);
@@ -64,8 +59,9 @@ class HttpFailure extends Equatable {
 
   static String _extractErrorMessage(dynamic error) {
     try {
-      final Map<String, dynamic> errorMap =
-          error is String ? jsonDecode(error) : error;
+      final Map<String, dynamic> errorMap = error is String
+          ? jsonDecode(error)
+          : error;
       return errorMap['message'] ?? 'An unknown error occurred';
     } catch (e) {
       return 'An unknown error occurred';
@@ -92,7 +88,7 @@ class HttpFailure extends Equatable {
         ),
       );
     } else {
-      Logger.e(this);
+      // Logger.e(this);
     }
   }
 

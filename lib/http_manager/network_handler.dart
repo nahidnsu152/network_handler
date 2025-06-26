@@ -8,7 +8,6 @@ import 'models/http_failure.dart';
 import 'models/request_options.dart';
 import 'src/network_log.dart';
 
-export 'package:flutter_easylogger/flutter_logger.dart';
 export 'package:fpdart/fpdart.dart' hide State;
 
 export 'failure_dialogue/http_failure_dialogue.dart';

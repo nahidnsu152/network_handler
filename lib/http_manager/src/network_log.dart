@@ -1,51 +1,41 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_easylogger/flutter_logger.dart';
+import 'package:talker/talker.dart';
 
 class NetworkLog {
-  init() => Logger.init(
-    true,
-    isShowFile: true,
-    isShowTime: false,
-    isShowNavigation: true,
-    levelVerbose: 247,
-    levelDebug: 15,
-    levelInfo: 10,
-    levelWarn: 5,
-    levelError: 9,
-    phoneVerbose: Colors.white,
-    phoneDebug: Colors.lightBlue,
-    phoneInfo: Colors.greenAccent,
-    phoneWarn: Colors.orange,
-    phoneError: Colors.redAccent,
-  );
+  final Talker _talker = Talker();
 
-  printResponse({required String json, required bool canPrint}) {
+  void init() {
+    _talker.configure(
+      settings: TalkerSettings(enabled: true, useConsoleLogs: true),
+    );
+  }
+
+  void printResponse({required String json, required bool canPrint}) {
     if (canPrint) {
-      Logger.json(json, tag: '');
+      _talker.info('[RESPONSE] $json');
     }
   }
 
-  printError({required String error, required bool canPrint}) {
+  void printError({required String error, required bool canPrint}) {
     if (canPrint) {
-      Logger.e(error, tag: '');
+      _talker.error('[ERROR] $error');
     }
   }
 
-  printSuccess({required String msg, required bool canPrint}) {
+  void printSuccess({required String msg, required bool canPrint}) {
     if (canPrint) {
-      Logger.i(msg, tag: '');
+      _talker.info('[SUCCESS] $msg');
     }
   }
 
-  printWarning({required String warn, required bool canPrint}) {
+  void printWarning({required String warn, required bool canPrint}) {
     if (canPrint) {
-      Logger.w(warn, tag: '');
+      _talker.warning('[WARNING] $warn');
     }
   }
 
-  printInfo({required String info, required bool canPrint}) {
+  void printInfo({required String info, required bool canPrint}) {
     if (canPrint) {
-      Logger.d(info, tag: '');
+      _talker.debug('[INFO] $info');
     }
   }
 }
