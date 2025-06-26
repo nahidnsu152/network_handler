@@ -12,6 +12,7 @@ class DioService {
   bool _requestBody = false;
   int _maxWidth = 150;
   final int _maxRetries = 3; // Max retry attempts
+  final List<int> _nonRetryableStatusCodes = [400, 401, 403, 404]; // Skip retries for these
 
   DioService._() {
     _initializeDio();
@@ -108,6 +109,7 @@ class DioService {
   void _setTimeouts() {
     _dio.options.receiveTimeout = const Duration(milliseconds: 30000);
     _dio.options.sendTimeout = const Duration(milliseconds: 30000);
+    _dio.options.connectTimeout = const Duration(milliseconds: 30000);
   }
 
   Either<DioFailure, T> _handleResponse<T>({
@@ -146,6 +148,7 @@ class DioService {
               uri: response.requestOptions.uri,
             ),
             error: response.data,
+            isRetryable: !_nonRetryableStatusCodes.contains(response.statusCode),
           ),
         );
       }
@@ -171,17 +174,51 @@ class DioService {
     required RequestMethod method,
     String? endPoint,
     String? url,
+    CancelToken? cancelToken,
+    bool allowRetry = true,
   }) async {
     int retryCount = 0;
-    while (retryCount < _maxRetries) {
+    while (retryCount < _maxRetries && allowRetry) {
       try {
         final response = await request();
-        return _handleResponse(
+        final result = _handleResponse(
           response: response,
           endPoint: endPoint ?? "",
           fromData: fromData,
         );
+        // Check if the result is a failure and non-retryable
+        return result.fold(
+          (failure) {
+            if (!failure.isRetryable) {
+              Logger.i("[NON-RETRYABLE]: Status code ${failure.statusCode} is not retryable.");
+              return Left(failure);
+            }
+            // If retryable, continue to the next iteration
+            retryCount++;
+            if (retryCount >= _maxRetries) {
+              Logger.e("[RETRY FAILED]: All attempts exhausted. Giving up.");
+              return Left(failure);
+            }
+            Logger.i("[RETRYING] Attempt: $retryCount");
+            return result;
+          },
+          (success) => Right(success),
+        );
       } catch (error) {
+        if (error is DioException && error.type == DioExceptionType.cancel) {
+          Logger.i("[CANCELLED]: Request was cancelled.");
+          return Left(
+            DioFailure.withData(
+              statusCode: -1,
+              request: RequestData(
+                method: method,
+                uri: Uri.parse(url ?? "$_baseUrl$endPoint"),
+              ),
+              error: "Request Cancelled",
+              isRetryable: false,
+            ),
+          );
+        }
         retryCount++;
         if (retryCount >= _maxRetries) {
           Logger.e("[RETRY FAILED]: All attempts exhausted. Giving up.");
@@ -197,13 +234,14 @@ class DioService {
           );
         }
         Logger.i("[RETRYING] Attempt: $retryCount");
+        await Future.delayed(Duration(milliseconds: 1000 * retryCount));
       }
     }
     return Left(
       DioFailure.withData(
         statusCode: -1,
         request: RequestData(
-          method: method,
+          method: RequestMethod.get,
           uri: Uri.parse(url ?? "$_baseUrl$endPoint"),
         ),
         error: "Unexpected Error",
@@ -215,85 +253,108 @@ class DioService {
     required T Function(dynamic data) fromData,
     required String endPoint,
     Map<String, String>? header,
+    CancelToken? cancelToken,
+    bool allowRetry = true,
   }) {
     return _handleRequest(
-      request: () => _dio.get(endPoint, options: Options(headers: header)),
+      request: () => _dio.get(endPoint, options: Options(headers: header), cancelToken: cancelToken),
       fromData: fromData,
       method: RequestMethod.get,
       endPoint: endPoint,
+      cancelToken: cancelToken,
+      allowRetry: allowRetry,
     );
   }
 
   Future<Either<DioFailure, T>> post<T>({
     required T Function(dynamic data) fromData,
     required String endPoint,
-    dynamic data,
+    dynamic body,
     Map<String, String>? header,
+    CancelToken? cancelToken,
+    bool allowRetry = true,
   }) {
     return _handleRequest(
-      request:
-          () => _dio.post(
-            endPoint,
-            data: data,
-            options: Options(headers: header),
-          ),
+      request: () => _dio.post(
+        endPoint,
+        data: body,
+        options: Options(headers: header),
+        cancelToken: cancelToken,
+      ),
       fromData: fromData,
       method: RequestMethod.post,
       endPoint: endPoint,
+      cancelToken: cancelToken,
+      allowRetry: allowRetry,
     );
   }
 
   Future<Either<DioFailure, T>> patch<T>({
     required T Function(dynamic data) fromData,
     required String endPoint,
-    dynamic data,
+    dynamic body,
     Map<String, String>? header,
+    CancelToken? cancelToken,
+    bool allowRetry = true,
   }) {
     return _handleRequest(
-      request:
-          () => _dio.patch(
-            endPoint,
-            data: data,
-            options: Options(headers: header),
-          ),
+      request: () => _dio.patch(
+        endPoint,
+        data: body,
+        options: Options(headers: header),
+        cancelToken: cancelToken,
+      ),
       fromData: fromData,
       method: RequestMethod.patch,
       endPoint: endPoint,
+      cancelToken: cancelToken,
+      allowRetry: allowRetry,
     );
   }
 
   Future<Either<DioFailure, T>> put<T>({
     required T Function(dynamic data) fromData,
     required String endPoint,
-    dynamic data,
+    dynamic body,
     Map<String, String>? header,
+    CancelToken? cancelToken,
+    bool allowRetry = true,
   }) {
     return _handleRequest(
-      request:
-          () =>
-              _dio.put(endPoint, data: data, options: Options(headers: header)),
+      request: () => _dio.put(
+        endPoint,
+        data: body,
+        options: Options(headers: header),
+        cancelToken: cancelToken,
+      ),
       fromData: fromData,
       method: RequestMethod.put,
       endPoint: endPoint,
+      cancelToken: cancelToken,
+      allowRetry: allowRetry,
     );
   }
 
   Future<Either<DioFailure, T>> upload<T>({
     required T Function(dynamic data) fromData,
     required String endPoint,
-    required FormData data,
+    required FormData body,
     Map<String, String>? header,
+    CancelToken? cancelToken,
+    bool allowRetry = true,
   }) {
     return _handleRequest(
-      request:
-          () => _dio.post(
-            endPoint,
-            data: data,
-            options: Options(headers: header),
-          ),
+      request: () => _dio.post(
+        endPoint,
+        data: body,
+        options: Options(headers: header),
+        cancelToken: cancelToken,
+      ),
       fromData: fromData,
       method: RequestMethod.post,
       endPoint: endPoint,
+      cancelToken: cancelToken,
+      allowRetry: allowRetry,
     );
   }
 
@@ -301,19 +362,29 @@ class DioService {
     required String url,
     required String savePath,
     ProgressCallback? onReceiveProgress,
+    CancelToken? cancelToken,
+    Map<String, String>? headers,
+    String? range,
+    bool allowRetry = true,
   }) {
     return _handleRequest(
-      request:
-          () => _dio.download(
-            url,
-            savePath,
-            onReceiveProgress: onReceiveProgress,
-          ),
+      request: () => _dio.download(
+        url,
+        savePath,
+        onReceiveProgress: onReceiveProgress,
+        cancelToken: cancelToken,
+        options: Options(
+          headers: {
+            if (range != null) 'Range': range,
+            ...?headers,
+          },
+        ),
+      ),
       fromData: (data) => data as T,
       method: RequestMethod.get,
       url: url,
+      cancelToken: cancelToken,
+      allowRetry: allowRetry,
     );
   }
 }
-
-enum LoggerType { talker, pretty }

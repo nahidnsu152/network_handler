@@ -24,4 +24,4 @@ class RequestData<T> {
   });
 }
 
-enum RequestMethod { get, post, put, patch, delete }
+

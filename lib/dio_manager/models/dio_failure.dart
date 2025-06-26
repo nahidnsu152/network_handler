@@ -5,24 +5,28 @@ class DioFailure extends Equatable {
   final bool _enableDialogue;
   final int statusCode;
   final String errorMessage;
+  final bool isRetryable; // New property
 
   const DioFailure({
     required this.error,
     bool enableDialogue = true,
     this.statusCode = -1,
     this.errorMessage = 'An unknown error occurred',
+    this.isRetryable = true, // Default to true
   }) : _enableDialogue = enableDialogue;
 
   DioFailure copyWith({
     String? error,
     int? statusCode,
     String? errorMessage,
+    bool? isRetryable,
   }) {
     return DioFailure(
       error: error ?? this.error,
       statusCode: statusCode ?? this.statusCode,
       enableDialogue: _enableDialogue,
       errorMessage: errorMessage ?? this.errorMessage,
+      isRetryable: isRetryable ?? this.isRetryable,
     );
   }
 
@@ -31,6 +35,7 @@ class DioFailure extends Equatable {
     required RequestData request,
     bool enableDialogue = true,
     required dynamic error,
+    bool isRetryable = true, // New parameter
   }) {
     final Map<String, dynamic> errorMap = {
       'url': request.uri.path,
@@ -38,7 +43,7 @@ class DioFailure extends Equatable {
       if (request.headers != null) 'header': request.headers,
       if (request.body != null) 'body': request.body,
       'error': error,
-      if (statusCode > 0) 'status_code': statusCode
+      if (statusCode > 0) 'status_code': statusCode,
     };
     final encoder = JsonEncoder.withIndent(' ' * 2);
     final String errorStr = encoder.convert(errorMap);
@@ -49,6 +54,7 @@ class DioFailure extends Equatable {
       enableDialogue: enableDialogue,
       statusCode: statusCode,
       errorMessage: errorMessage,
+      isRetryable: isRetryable,
     );
   }
 
@@ -56,8 +62,9 @@ class DioFailure extends Equatable {
 
   static String _extractErrorMessage(dynamic error) {
     try {
-      final Map<String, dynamic> errorMap =
-          error is String ? jsonDecode(error) : error;
+      final Map<String, dynamic> errorMap = error is String
+          ? jsonDecode(error)
+          : error;
       return errorMap['message'] ?? 'An unknown error occurred';
     } catch (e) {
       return 'An unknown error occurred';
@@ -65,7 +72,8 @@ class DioFailure extends Equatable {
   }
 
   @override
-  String toString() => 'DioFailure(error: $error, errorMessage: $errorMessage)';
+  String toString() =>
+      'DioFailure(error: $error, errorMessage: $errorMessage, isRetryable: $isRetryable)';
 
   void showDialogue(BuildContext context) {
     if (_enableDialogue) {
@@ -92,6 +100,5 @@ class DioFailure extends Equatable {
     }
   }
 
-  @override
-  List<Object?> get props => [error, errorMessage];
+  List<Object?> get props => [error, statusCode, errorMessage, isRetryable];
 }
