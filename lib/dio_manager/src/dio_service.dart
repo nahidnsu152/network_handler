@@ -12,7 +12,14 @@ class DioService {
   bool _requestBody = false;
   int _maxWidth = 150;
   final int _maxRetries = 3; // Max retry attempts
-  final List<int> _nonRetryableStatusCodes = [400, 401, 403, 404]; // Skip retries for these
+  final List<int> _nonRetryableStatusCodes = [
+    400,
+    401,
+    403,
+    404,
+  ]; // Skip retries for these
+
+  final _talker = Talker();
 
   DioService._() {
     _initializeDio();
@@ -125,8 +132,8 @@ class DioService {
           final T parsedData = fromData(response.data);
           return Right(parsedData);
         } catch (e, stackTrace) {
-          Logger.e("[Error]: $e");
-          Logger.e("[STACKTRACE]: $stackTrace");
+          _talker.error("[Error]: $e");
+          _talker.error("[STACKTRACE]: $stackTrace");
           return Left(
             DioFailure.withData(
               statusCode: response.statusCode!,
@@ -139,7 +146,9 @@ class DioService {
           );
         }
       } else {
-        Logger.e("[ERROR]: Request failed with status: ${response.statusCode}");
+        _talker.error(
+          "[ERROR]: Request failed with status: ${response.statusCode}",
+        );
         return Left(
           DioFailure.withData(
             statusCode: response.statusCode!,
@@ -148,13 +157,15 @@ class DioService {
               uri: response.requestOptions.uri,
             ),
             error: response.data,
-            isRetryable: !_nonRetryableStatusCodes.contains(response.statusCode),
+            isRetryable: !_nonRetryableStatusCodes.contains(
+              response.statusCode,
+            ),
           ),
         );
       }
     } catch (e, stackTrace) {
-      Logger.e("[EXCEPTION]: $e");
-      Logger.e("[STACKTRACE]: $stackTrace");
+      _talker.error("[EXCEPTION]: $e");
+      _talker.error("[STACKTRACE]: $stackTrace");
       return Left(
         DioFailure.withData(
           statusCode: -1,
@@ -187,26 +198,25 @@ class DioService {
           fromData: fromData,
         );
         // Check if the result is a failure and non-retryable
-        return result.fold(
-          (failure) {
-            if (!failure.isRetryable) {
-              Logger.i("[NON-RETRYABLE]: Status code ${failure.statusCode} is not retryable.");
-              return Left(failure);
-            }
-            // If retryable, continue to the next iteration
-            retryCount++;
-            if (retryCount >= _maxRetries) {
-              Logger.e("[RETRY FAILED]: All attempts exhausted. Giving up.");
-              return Left(failure);
-            }
-            Logger.i("[RETRYING] Attempt: $retryCount");
-            return result;
-          },
-          (success) => Right(success),
-        );
+        return result.fold((failure) {
+          if (!failure.isRetryable) {
+           _talker.info(
+              "[NON-RETRYABLE]: Status code ${failure.statusCode} is not retryable.",
+            );
+            return Left(failure);
+          }
+          // If retryable, continue to the next iteration
+          retryCount++;
+          if (retryCount >= _maxRetries) {
+            _talker.error("[RETRY FAILED]: All attempts exhausted. Giving up.");
+            return Left(failure);
+          }
+          _talker.info("[RETRYING] Attempt: $retryCount");
+          return result;
+        }, (success) => Right(success));
       } catch (error) {
         if (error is DioException && error.type == DioExceptionType.cancel) {
-          Logger.i("[CANCELLED]: Request was cancelled.");
+          _talker.info("[CANCELLED]: Request was cancelled.");
           return Left(
             DioFailure.withData(
               statusCode: -1,
@@ -221,7 +231,7 @@ class DioService {
         }
         retryCount++;
         if (retryCount >= _maxRetries) {
-          Logger.e("[RETRY FAILED]: All attempts exhausted. Giving up.");
+          _talker.error("[RETRY FAILED]: All attempts exhausted. Giving up.");
           return Left(
             DioFailure.withData(
               statusCode: -1,
@@ -233,7 +243,7 @@ class DioService {
             ),
           );
         }
-        Logger.i("[RETRYING] Attempt: $retryCount");
+        _talker.info("[RETRYING] Attempt: $retryCount");
         await Future.delayed(Duration(milliseconds: 1000 * retryCount));
       }
     }
@@ -257,7 +267,11 @@ class DioService {
     bool allowRetry = true,
   }) {
     return _handleRequest(
-      request: () => _dio.get(endPoint, options: Options(headers: header), cancelToken: cancelToken),
+      request: () => _dio.get(
+        endPoint,
+        options: Options(headers: header),
+        cancelToken: cancelToken,
+      ),
       fromData: fromData,
       method: RequestMethod.get,
       endPoint: endPoint,
@@ -374,10 +388,7 @@ class DioService {
         onReceiveProgress: onReceiveProgress,
         cancelToken: cancelToken,
         options: Options(
-          headers: {
-            if (range != null) 'Range': range,
-            ...?headers,
-          },
+          headers: {if (range != null) 'Range': range, ...?headers},
         ),
       ),
       fromData: (data) => data as T,
