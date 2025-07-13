@@ -45,7 +45,7 @@ class DioFailure extends Equatable {
       'error': error,
       if (statusCode > 0) 'status_code': statusCode,
     };
-    final encoder = JsonEncoder.withIndent(' ' * 2);
+    final encoder = JsonEncoder.withIndent('  ');
     final String errorStr = encoder.convert(errorMap);
     final String errorMessage = _extractErrorMessage(error);
 
@@ -60,35 +60,31 @@ class DioFailure extends Equatable {
 
   factory DioFailure.none() => const DioFailure(error: '');
 
-  // static String _extractErrorMessage(dynamic error) {
-  //   try {
-  //     final Map<String, dynamic> errorMap = error is String
-  //         ? jsonDecode(error)
-  //         : error;
-  //     return errorMap['message'] ?? 'An unknown error occurred';
-  //   } catch (e) {
-  //     return 'An unknown error occurred';
-  //   }
-  // }
-
   static String _extractErrorMessage(dynamic error) {
     try {
-      final Map<String, dynamic> errorMap = error is String
-          ? jsonDecode(error)
-          : error as Map<String, dynamic>;
-
-      if (errorMap.containsKey('message')) return errorMap['message'];
-      if (errorMap['data'] is Map && errorMap['data']['message'] != null) {
-        return errorMap['data']['message'];
+      if (error is DioException) {
+        final data = error.response?.data;
+        if (data is Map<String, dynamic>) {
+          if (data['message'] != null) return data['message'];
+          if (data['data'] is Map && data['data']['message'] != null) {
+            return data['data']['message'];
+          }
+        }
+      } else if (error is Map<String, dynamic>) {
+        if (error['message'] != null) return error['message'];
+        if (error['data'] is Map && error['data']['message'] != null) {
+          return error['data']['message'];
+        }
+        if (error['error'] is Map && error['error']['message'] != null) {
+          return error['error']['message'];
+        }
+      } else if (error is String) {
+        final Map<String, dynamic> parsed = jsonDecode(error);
+        if (parsed['message'] != null) return parsed['message'];
       }
-      if (errorMap['error'] is Map && errorMap['error']['message'] != null) {
-        return errorMap['error']['message'];
-      }
+    } catch (_) {}
 
-      return 'An unknown error occurred';
-    } catch (_) {
-      return 'An unknown error occurred';
-    }
+    return 'An unknown error occurred';
   }
 
   @override
@@ -109,13 +105,6 @@ class DioFailure extends Equatable {
             ),
           ],
         ),
-      );
-    } else {
-      PrettyDioLogger(
-        error: true,
-        requestBody: true,
-        responseBody: true,
-        logPrint: (object) {},
       );
     }
   }
