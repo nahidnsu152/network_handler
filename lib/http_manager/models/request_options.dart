@@ -15,7 +15,10 @@ class RequestData<T> extends Equatable {
   final T Function(dynamic data) fromData;
   final Map<String, String>? headers;
   final Either<HttpFailure, T> Function(
-      int statusCode, Map<String, dynamic> responseBody)? failureHandler;
+    int statusCode,
+    Map<String, dynamic> responseBody,
+  )?
+  failureHandler;
   const RequestData({
     required this.method,
     required this.uri,
@@ -28,19 +31,11 @@ class RequestData<T> extends Equatable {
 
   String? get jsonEncodedBody => body != null
       ? body is String
-          ? body as String
-          : jsonEncode(body)
+            ? body as String
+            : jsonEncode(body)
       : null;
   @override
   List<Object?> get props {
-    return [
-      method,
-      uri,
-      body,
-      showLogs,
-      fromData,
-      headers,
-      failureHandler,
-    ];
+    return [method, uri, body, showLogs, fromData, headers, failureHandler];
   }
 }

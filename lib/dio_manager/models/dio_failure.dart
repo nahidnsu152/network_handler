@@ -5,14 +5,14 @@ class DioFailure extends Equatable {
   final bool _enableDialogue;
   final int statusCode;
   final String errorMessage;
-  final bool isRetryable; // New property
+  final bool isRetryable;
 
   const DioFailure({
     required this.error,
     bool enableDialogue = true,
     this.statusCode = -1,
     this.errorMessage = 'An unknown error occurred',
-    this.isRetryable = true, // Default to true
+    this.isRetryable = true,
   }) : _enableDialogue = enableDialogue;
 
   DioFailure copyWith({
@@ -35,7 +35,7 @@ class DioFailure extends Equatable {
     required RequestData request,
     bool enableDialogue = true,
     required dynamic error,
-    bool isRetryable = true, // New parameter
+    bool isRetryable = true,
   }) {
     final Map<String, dynamic> errorMap = {
       'url': request.uri.path,
@@ -60,13 +60,33 @@ class DioFailure extends Equatable {
 
   factory DioFailure.none() => const DioFailure(error: '');
 
+  // static String _extractErrorMessage(dynamic error) {
+  //   try {
+  //     final Map<String, dynamic> errorMap = error is String
+  //         ? jsonDecode(error)
+  //         : error;
+  //     return errorMap['message'] ?? 'An unknown error occurred';
+  //   } catch (e) {
+  //     return 'An unknown error occurred';
+  //   }
+  // }
+
   static String _extractErrorMessage(dynamic error) {
     try {
       final Map<String, dynamic> errorMap = error is String
           ? jsonDecode(error)
-          : error;
-      return errorMap['message'] ?? 'An unknown error occurred';
-    } catch (e) {
+          : error as Map<String, dynamic>;
+
+      if (errorMap.containsKey('message')) return errorMap['message'];
+      if (errorMap['data'] is Map && errorMap['data']['message'] != null) {
+        return errorMap['data']['message'];
+      }
+      if (errorMap['error'] is Map && errorMap['error']['message'] != null) {
+        return errorMap['error']['message'];
+      }
+
+      return 'An unknown error occurred';
+    } catch (_) {
       return 'An unknown error occurred';
     }
   }

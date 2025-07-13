@@ -23,5 +23,3 @@ class RequestData<T> {
     this.failureHandler,
   });
 }
-
-

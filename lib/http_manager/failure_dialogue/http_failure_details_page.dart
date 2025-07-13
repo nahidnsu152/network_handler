@@ -31,51 +31,58 @@ class HttpFailureDetailsPage extends StatelessWidget {
                         color: Colors.red,
                         size: 40,
                       ),
-                      SizedBox(
-                        width: 10,
-                      ),
-                      Text(
-                        'Error',
-                        style: TextStyle(fontSize: 40),
-                      ),
+                      SizedBox(width: 10),
+                      Text('Error', style: TextStyle(fontSize: 40)),
                     ],
                   ),
                   Column(
                     children: [
                       ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              shape: const StadiumBorder(),
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 5),
-                              visualDensity: VisualDensity.compact),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: Row(
-                            children: [
-                              Icon(CupertinoIcons.arrow_left_circle,
-                                  color: Colors.purple[900]),
-                              Text('Go back',
-                                  style: TextStyle(color: Colors.purple[900])),
-                            ],
-                          )),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          shape: const StadiumBorder(),
+                          padding: const EdgeInsets.symmetric(horizontal: 5),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Row(
+                          children: [
+                            Icon(
+                              CupertinoIcons.arrow_left_circle,
+                              color: Colors.purple[900],
+                            ),
+                            Text(
+                              'Go back',
+                              style: TextStyle(color: Colors.purple[900]),
+                            ),
+                          ],
+                        ),
+                      ),
                       OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              side: BorderSide(
-                                  width: 2, color: Colors.purple[900]!),
-                              shape: const StadiumBorder(),
-                              visualDensity: VisualDensity.compact),
-                          onPressed: () {
-                            Clipboard.setData(
-                                ClipboardData(text: failure.error));
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Copied to Clipboard')));
-                          },
-                          child: Text('Copy code',
-                              style: TextStyle(color: Colors.purple[900]))),
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          side: BorderSide(
+                            width: 2,
+                            color: Colors.purple[900]!,
+                          ),
+                          shape: const StadiumBorder(),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: failure.error));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Copied to Clipboard'),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          'Copy code',
+                          style: TextStyle(color: Colors.purple[900]),
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -84,16 +91,12 @@ class HttpFailureDetailsPage extends StatelessWidget {
           ),
           Expanded(
             child: ListView(
-                padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
-                children: [
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Text(
-                    failure.error,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                ]),
+              padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
+              children: [
+                const SizedBox(height: 10),
+                Text(failure.error, style: const TextStyle(color: Colors.red)),
+              ],
+            ),
           ),
         ],
       ),

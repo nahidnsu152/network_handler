@@ -200,7 +200,7 @@ class DioService {
         // Check if the result is a failure and non-retryable
         return result.fold((failure) {
           if (!failure.isRetryable) {
-           _talker.info(
+            _talker.info(
               "[NON-RETRYABLE]: Status code ${failure.statusCode} is not retryable.",
             );
             return Left(failure);
