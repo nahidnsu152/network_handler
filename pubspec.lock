@@ -61,10 +61,10 @@ packages:
     dependency: "direct main"
     description:
       name: dio
-      sha256: "253a18bbd4851fecba42f7343a1df3a9a4c1d31a2c1b37e221086b4fa8c8dbc9"
+      sha256: d90ee57923d1828ac14e492ca49440f65477f4bb1263575900be731a3dac66a9
       url: "https://pub.dev"
     source: hosted
-    version: "5.8.0+1"
+    version: "5.9.0"
   dio_web_adapter:
     dependency: transitive
     description:
@@ -119,10 +119,10 @@ packages:
     dependency: "direct main"
     description:
       name: http
-      sha256: "2c11f3f94c687ee9bad77c171151672986360b2b001d109814ee7140b2cf261b"
+      sha256: bb2ce4590bc2667c96f318d68cac1b5a7987ec819351d32b1c987239a815e007
       url: "https://pub.dev"
     source: hosted
-    version: "1.4.0"
+    version: "1.5.0"
   http_parser:
     dependency: transitive
     description:
@@ -187,6 +187,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.16.0"
+  mime:
+    dependency: transitive
+    description:
+      name: mime
+      sha256: "41a20518f0cb1256669420fdba0cd90d21561e560ac240f26ef8322e45bb7ed6"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   path:
     dependency: transitive
     description:
@@ -244,26 +252,26 @@ packages:
     dependency: "direct main"
     description:
       name: talker
-      sha256: a519202a794ccce761d2b07e5bfe8141fbc9c89bbc7e6ed89472af6c737d92d4
+      sha256: "2d742b54e5cda58b7d386cd2d95088c3429ef273b2a0869dec552fe02601367a"
       url: "https://pub.dev"
     source: hosted
-    version: "5.0.0-dev.5"
+    version: "5.0.0"
   talker_dio_logger:
     dependency: "direct main"
     description:
       name: talker_dio_logger
-      sha256: a22dfba1edd275fb67f04231f651f75cca6ac39dc9dd0dc0132ed03c6c5e4c62
+      sha256: "20cc3bc9820fa73040f23e27d5d86462e590ddf02c43d0a801c56bf5ecc68922"
       url: "https://pub.dev"
     source: hosted
-    version: "5.0.0-dev.5"
+    version: "5.0.0"
   talker_logger:
     dependency: transitive
     description:
       name: talker_logger
-      sha256: e8cc8fa27334450a20553bb41a40b8da1dc3f3050b8f2264b8f617f0e4ff1353
+      sha256: "4f06d46db664c11cf4d629378da661f2c75aee629e3ef898dbc3cf44a0c41cd7"
       url: "https://pub.dev"
     source: hosted
-    version: "5.0.0-dev.5"
+    version: "5.0.0"
   term_glyph:
     dependency: transitive
     description:

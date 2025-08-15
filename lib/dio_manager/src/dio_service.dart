@@ -26,6 +26,25 @@ class DioService {
     _setTimeouts();
   }
 
+  /// Adds a custom interceptor to the Dio instance
+  void addInterceptor(Interceptor interceptor) {
+    _dio.interceptors.add(interceptor);
+  }
+
+  /// Creates a MultipartFile from a file path
+  Future<MultipartFile> getMultipartFromFile(String filePath) async {
+    String fileName = filePath.split('/').last;
+    return await MultipartFile.fromFile(filePath, filename: fileName);
+  }
+
+  /// Creates a MultipartFile from bytes
+  Future<MultipartFile> getMultipartFromBytes(
+    Uint8List bytes, [
+    String? fileName,
+  ]) async {
+    return MultipartFile.fromBytes(bytes, filename: fileName);
+  }
+
   void setLogger(LoggerType loggerType) {
     _loggerType = loggerType;
     _setLogger();
