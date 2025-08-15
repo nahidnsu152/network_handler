@@ -51,7 +51,10 @@ class DioService {
   }
 
   void _setLogger() {
-    _dio.interceptors.clear();
+    _dio.interceptors.removeWhere(
+      (interceptor) =>
+          interceptor is TalkerDioLogger || interceptor is PrettyDioLogger,
+    );
 
     if (_loggerType == LoggerType.talker) {
       _dio.interceptors.add(
@@ -84,7 +87,9 @@ class DioService {
     _requestBody = request ?? _requestBody;
     _maxWidth = width ?? _maxWidth;
 
-    _dio.interceptors.clear();
+    _dio.interceptors.removeWhere(
+      (interceptor) => interceptor is PrettyDioLogger,
+    );
     _dio.interceptors.add(
       PrettyDioLogger(
         responseBody: _requestBody,
@@ -94,6 +99,50 @@ class DioService {
       ),
     );
   }
+  // void _setLogger() {
+  //   _dio.interceptors.clear();
+
+  //   if (_loggerType == LoggerType.talker) {
+  //     _dio.interceptors.add(
+  //       TalkerDioLogger(
+  //         settings: const TalkerDioLoggerSettings(
+  //           printRequestHeaders: true,
+  //           printResponseMessage: true,
+  //         ),
+  //       ),
+  //     );
+  //   } else {
+  //     _dio.interceptors.add(
+  //       PrettyDioLogger(
+  //         requestHeader: true,
+  //         requestBody: true,
+  //         responseBody: true,
+  //         error: true,
+  //       ),
+  //     );
+  //   }
+  // }
+
+  // void logSetup({
+  //   bool? responseBody,
+  //   int? width,
+  //   bool? responseHeader,
+  //   bool? request,
+  // }) {
+  //   _showResponseHeader = responseHeader ?? _showResponseHeader;
+  //   _requestBody = request ?? _requestBody;
+  //   _maxWidth = width ?? _maxWidth;
+
+  //   _dio.interceptors.clear();
+  //   _dio.interceptors.add(
+  //     PrettyDioLogger(
+  //       responseBody: _requestBody,
+  //       responseHeader: _showResponseHeader,
+  //       maxWidth: _maxWidth,
+  //       error: true,
+  //     ),
+  //   );
+  // }
 
   void setBaseUrl(String baseUrl) {
     _baseUrl = baseUrl;
