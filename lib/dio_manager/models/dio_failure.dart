@@ -1,3 +1,4 @@
+
 part of '../dio_manager.dart';
 
 class DioFailure extends Equatable {
