@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:fpdart/fpdart.dart';
 
 export 'cache/cache.dart';
+export 'interceptors/interceptors.dart';
 
 part 'enums/enums.dart';
 part 'models/dio_failure.dart';
