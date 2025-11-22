@@ -12,7 +12,6 @@ class DioService {
     _initializeDio();
   }
   static final DioService instance = DioService._();
-  
 
   void _initializeDio() {
     _setDefaultHeaders();
@@ -198,10 +197,7 @@ class DioService {
         throw Exception("Unsupported response type for isolate parsing");
       }
     } catch (e, stackTrace) {
-      // ParsingErrorInterceptor.logParseError(e, stackTrace);
-      Talker().error("[EXCEPTION]: $e");
-      Talker().error("[STACKTRACE]: $stackTrace");
-
+      Talker().handle(e, stackTrace);
       rethrow;
     }
   }
