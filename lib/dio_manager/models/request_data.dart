@@ -1,4 +1,3 @@
-
 part of '../dio_manager.dart';
 
 class RequestData<T> {
@@ -11,7 +10,8 @@ class RequestData<T> {
   final Either<DioFailure, T> Function(
     int statusCode,
     Map<String, dynamic> responseBody,
-  )? failureHandler;
+  )?
+  failureHandler;
   final ProgressCallback? onSendProgress;
   final ProgressCallback? onReceiveProgress;
 

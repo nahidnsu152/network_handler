@@ -12,6 +12,7 @@ class DioService {
     _initializeDio();
   }
   static final DioService instance = DioService._();
+  
 
   void _initializeDio() {
     _setDefaultHeaders();
@@ -20,18 +21,18 @@ class DioService {
         status != null && (status >= 200 && status < 300 || status == 304);
   }
 
-  /// Adds a custom interceptor to the Dio instance without replacing existing ones
+  // Adds a custom interceptor to the Dio instance without replacing existing ones
   void addInterceptor(Interceptor interceptor) {
     _dio.interceptors.add(interceptor);
   }
 
-  /// Creates a MultipartFile from a file path
+  // Creates a MultipartFile from a file path
   Future<MultipartFile> getMultipartFromFile(String filePath) async {
     String fileName = filePath.split('/').last;
     return await MultipartFile.fromFile(filePath, filename: fileName);
   }
 
-  /// Creates a MultipartFile from bytes
+  // Creates a MultipartFile from bytes
   Future<MultipartFile> getMultipartFromBytes(
     Uint8List bytes, [
     String? fileName,
@@ -74,118 +75,6 @@ class DioService {
     _dio.options.sendTimeout = const Duration(milliseconds: 30000);
     _dio.options.connectTimeout = const Duration(milliseconds: 30000);
   }
-
-  // Future<Either<DioFailure, T>> handleRequest<T>({
-  //   required RequestData requestData,
-  //   required T Function(dynamic data) fromData,
-  //   Options? extraOptions,
-  //   CancelToken? cancelToken,
-  //   bool allowRetry = true,
-  // }) async {
-  //   int attempts = 0;
-
-  //   // Merge default options with provided extraOptions
-  //   Options mergedOptions = Options(
-  //     method: requestData.method.name,
-  //     headers: {..._dio.options.headers, ...?requestData.headers},
-  //   );
-
-  //   if (extraOptions != null) {
-  //     mergedOptions = mergedOptions.copyWith(
-  //       method: extraOptions.method ?? mergedOptions.method,
-  //       headers: {...mergedOptions.headers ?? {}, ...?extraOptions.headers},
-  //       extra: {...mergedOptions.extra ?? {}, ...?extraOptions.extra},
-  //       contentType: extraOptions.contentType ?? mergedOptions.contentType,
-  //       responseType: extraOptions.responseType ?? mergedOptions.responseType,
-  //       validateStatus:
-  //           extraOptions.validateStatus ?? mergedOptions.validateStatus,
-  //       receiveDataWhenStatusError:
-  //           extraOptions.receiveDataWhenStatusError ??
-  //           mergedOptions.receiveDataWhenStatusError,
-  //       followRedirects:
-  //           extraOptions.followRedirects ?? mergedOptions.followRedirects,
-  //       maxRedirects: extraOptions.maxRedirects ?? mergedOptions.maxRedirects,
-  //       requestEncoder:
-  //           extraOptions.requestEncoder ?? mergedOptions.requestEncoder,
-  //       responseDecoder:
-  //           extraOptions.responseDecoder ?? mergedOptions.responseDecoder,
-  //       listFormat: extraOptions.listFormat ?? mergedOptions.listFormat,
-  //     );
-  //   }
-
-  //   while (true) {
-  //     try {
-  //       final response = await _dio.request(
-  //         requestData.uri.toString(),
-  //         data: requestData.body,
-  //         queryParameters: requestData.queryParameters,
-  //         options: mergedOptions,
-  //         cancelToken: cancelToken,
-  //         onSendProgress: requestData.onSendProgress,
-  //         onReceiveProgress: requestData.onReceiveProgress,
-  //       );
-
-  //       if (response.statusCode != null &&
-  //           response.statusCode! >= 200 &&
-  //           response.statusCode! < 300) {
-  //         return Right(fromData(response.data));
-  //       } else {
-  //         final failure = DioFailure.withData(
-  //           statusCode: response.statusCode ?? -1,
-  //           request: requestData,
-  //           error: response.data,
-  //           isRetryable: !_nonRetryableStatusCodes.contains(
-  //             response.statusCode,
-  //           ),
-  //         );
-
-  //         // Use failureHandler if provided
-  //         if (requestData.failureHandler != null) {
-  //           return requestData.failureHandler!(
-  //                 response.statusCode ?? -1,
-  //                 response.data is Map<String, dynamic> ? response.data : {},
-  //               )
-  //               as Either<DioFailure, T>;
-  //         }
-
-  //         if (!allowRetry || attempts >= _maxRetries || !failure.isRetryable) {
-  //           return Left(failure);
-  //         }
-  //         attempts++;
-  //       }
-  //     } on DioException catch (error) {
-  //       final failure = DioFailure.withData(
-  //         statusCode: error.response?.statusCode ?? -1,
-  //         request: requestData,
-  //         error: error.response?.data ?? error.message,
-  //       );
-
-  //       // Use failureHandler if provided
-  //       if (requestData.failureHandler != null && error.response != null) {
-  //         return requestData.failureHandler!(
-  //               error.response!.statusCode ?? -1,
-  //               error.response!.data is Map<String, dynamic>
-  //                   ? error.response!.data
-  //                   : {},
-  //             )
-  //             as Either<DioFailure, T>;
-  //       }
-
-  //       if (!allowRetry || attempts >= _maxRetries || !_shouldRetry(error)) {
-  //         return Left(failure);
-  //       }
-  //       attempts++;
-  //     } catch (e) {
-  //       return Left(
-  //         DioFailure.withData(
-  //           statusCode: -1,
-  //           request: requestData,
-  //           error: e.toString(),
-  //         ),
-  //       );
-  //     }
-  //   }
-  // }
 
   Future<Either<DioFailure, T>> handleRequest<T>({
     required RequestData requestData,
@@ -293,21 +182,27 @@ class DioService {
     }
   }
 
-  /// Isolate JSON parsing helper
   Future<T> _parseInIsolate<T>(
     dynamic data,
     T Function(dynamic) fromData,
   ) async {
-    if (data is String) {
-      return await Isolate.run(() {
-        final decoded = json.decode(data);
-        return fromData(decoded);
-      });
-    } else if (data is List || data is Map) {
-      // Already decoded by Dio (unlikely when useIsolate=true)
-      return fromData(data);
-    } else {
-      throw Exception("Unsupported response type for isolate parsing");
+    try {
+      if (data is String) {
+        return await Isolate.run(() {
+          final decoded = json.decode(data);
+          return fromData(decoded);
+        });
+      } else if (data is List || data is Map) {
+        return fromData(data);
+      } else {
+        throw Exception("Unsupported response type for isolate parsing");
+      }
+    } catch (e, stackTrace) {
+      // ParsingErrorInterceptor.logParseError(e, stackTrace);
+      Talker().error("[EXCEPTION]: $e");
+      Talker().error("[STACKTRACE]: $stackTrace");
+
+      rethrow;
     }
   }
 
@@ -423,7 +318,7 @@ class DioService {
   Future<Either<DioFailure, T>> post<T>({
     required String endPoint,
     required T Function(dynamic) fromData,
-    dynamic body,
+    required dynamic body,
     Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
     Options? extraOptions,
@@ -455,7 +350,7 @@ class DioService {
   //' POST Raw Response Method
   Future<Response<dynamic>> postRaw({
     required String endPoint,
-    dynamic body,
+    required dynamic body,
     Map<String, dynamic>? queryParameters,
     Map<String, String>? headers,
     Options? extraOptions,
@@ -528,7 +423,7 @@ class DioService {
   Future<Either<DioFailure, T>> put<T>({
     required String endPoint,
     required T Function(dynamic) fromData,
-    dynamic body,
+    required dynamic body,
     Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
     Options? extraOptions,
@@ -562,7 +457,7 @@ class DioService {
   Future<Either<DioFailure, T>> patch<T>({
     required String endPoint,
     required T Function(dynamic) fromData,
-    dynamic body,
+    required dynamic body,
     Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
     Options? extraOptions,
@@ -596,7 +491,7 @@ class DioService {
   Future<Either<DioFailure, T>> delete<T>({
     required String endPoint,
     required T Function(dynamic) fromData,
-    dynamic body,
+    required dynamic body,
     Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
     Options? extraOptions,

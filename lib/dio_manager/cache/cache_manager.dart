@@ -1,7 +1,6 @@
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
-import 'package:network_handler/dio_manager/dio_manager.dart';
 
-import 'hive_cache_store.dart'; // Updated import
+import '../dio_manager.dart';
 
 class CacheManager {
   static CacheManager? _instance;
