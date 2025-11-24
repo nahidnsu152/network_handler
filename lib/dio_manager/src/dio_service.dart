@@ -487,7 +487,7 @@ class DioService {
   Future<Either<DioFailure, T>> delete<T>({
     required String endPoint,
     required T Function(dynamic) fromData,
-    required dynamic body,
+    dynamic body,
     Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
     Options? extraOptions,
